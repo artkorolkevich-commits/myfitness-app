@@ -493,6 +493,60 @@
     align-self: start;
   }
 } 
+      /* Workout set row: mobile fix */
+.sets { display: grid; gap: 10px; }
+
+.set-row {
+  position: relative;                 /* чтобы крестик жил внутри блока */
+  display: grid;
+  grid-template-columns: auto 1fr 1fr 36px;  /* метка, Повт., Вес, крестик */
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(148,163,184,0.2);
+  border-radius: 8px;
+}
+
+.set-row .pair {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.set-row input,
+.set-row select {
+  width: 100%;
+  min-width: 0;
+}
+
+.set-row .remove-set {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(239,68,68,0.4);
+  background: rgba(239,68,68,0.08);
+  color: var(--danger);
+  cursor: pointer;
+}
+
+/* Узкие экраны: складываем в столбец, крестик — в правом верхнем углу внутри блока */
+@media (max-width: 480px) {
+  .set-row {
+    grid-template-columns: 1fr;
+    padding-right: 48px;              /* место под крестик внутри блока */
+  }
+  .set-row .pair { grid-column: 1 / -1; }
+  .set-row .remove-set {
+    position: absolute;
+    top: 8px;
+    right: 8px;                       /* больше не вылезает за пределы */
+  }
+}
     </style>
     <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
