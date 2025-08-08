@@ -594,6 +594,24 @@
   .wf-row .group-actions { grid-column: 1 / -1; justify-content: stretch; }
   .group-actions .btn-secondary { width: 100%; }
 }
+/* Compact controls */
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;border:1px solid rgba(148,163,184,.25);background:#0b1220;color:#e5e7eb}
+.icon-btn:hover{background:rgba(255,255,255,.06)}
+.add-set-icon{border-color:rgba(34,197,94,.35);color:#22c55e;background:rgba(34,197,94,.08)}
+.remove-exercise{width:28px;height:28px}
+
+/* Hide big text buttons -> make them icon-only */
+.exercise-block .add-set-btn{font-size:0;padding:0;width:28px;height:28px;border-radius:6px}
+.exercise-block .add-set-btn::before{content:'+';font-size:18px;line-height:1;color:#22c55e}
+.group-actions .btn-secondary{font-size:0;padding:0 0;width:32px;height:32px;border-radius:6px}
+.group-actions .btn-secondary::before{content:'+';font-size:18px;color:#e5e7eb}
+.group-actions{display:flex;justify-content:flex-end}
+
+/* Tighter mobile spacing */
+@media (max-width:600px){
+  .exercise-header{gap:6px}
+  .exercise-block{padding:10px}
+}
     </style>
     <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
@@ -1425,6 +1443,14 @@ function createExerciseBlock(groupId, optionsSourceSelect) {
   });
   header.appendChild(select);
 
+  const addSetIcon = document.createElement('button');
+addSetIcon.type = 'button';
+addSetIcon.className = 'icon-btn add-set-icon';
+addSetIcon.title = 'Добавить подход';
+addSetIcon.textContent = '+';
+addSetIcon.addEventListener('click', () => addSet(sets));
+header.appendChild(addSetIcon);
+  
   const removeBtn = document.createElement('button');
   removeBtn.type = 'button';
   removeBtn.className = 'remove-exercise';
@@ -1476,6 +1502,14 @@ function transformGroupsToMultiExercise() {
     header.className = 'exercise-header';
     originalSelect.classList.add('exercise-select');
     header.appendChild(originalSelect);
+
+    const addSetIcon0 = document.createElement('button');
+addSetIcon0.type = 'button';
+addSetIcon0.className = 'icon-btn add-set-icon';
+addSetIcon0.title = 'Добавить подход';
+addSetIcon0.textContent = '+';
+addSetIcon0.addEventListener('click', () => addSet(originalSets));
+header.appendChild(addSetIcon0);
 
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
