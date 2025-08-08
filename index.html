@@ -834,40 +834,23 @@
       });
       
       function showPage(pageName) {
-        // Hide all pages
-        document.querySelectorAll('.page-content').forEach(page => {
-          page.style.display = 'none';
-        });
-        
-        // Show selected page
-        const targetPage = document.getElementById(pageName + '-page');
-        if (targetPage) {
-          targetPage.style.display = 'block';
-        }
-        
-        // Load page content if needed
-        if (pageName === 'welcome') {
-          loadWelcomePage();
-        } else if (pageName === 'history') {
-          loadHistoryPage();
-        } else if (pageName === 'settings') {
-          loadSettingsPage();
-        }
-        
-        // Update page title
-        const pageTitles = {
-          'welcome': 'Главная',
-          'main': 'Новая тренировка',
-          'history': 'История тренировок',
-          'settings': 'Настройки'
-        };
-        
-        const pageTitle = document.querySelector('.content-header h2');
-        if (pageTitle && pageTitles[pageName]) {
-          pageTitle.textContent = pageTitles[pageName];
-        }
-      }
-      
+  document.querySelectorAll('.page-content').forEach(p => p.style.display = 'none');
+
+  const targetPage = document.getElementById(pageName + '-page');
+  if (targetPage) targetPage.style.display = 'block';
+
+  document.querySelectorAll('.nav-item').forEach(nav => {
+    nav.classList.toggle('active', nav.getAttribute('data-page') === pageName);
+  });
+
+  if (pageName === 'welcome') loadWelcomePage();
+  else if (pageName === 'history') loadHistoryPage();
+  else if (pageName === 'settings') loadSettingsPage();
+
+  const pageTitles = { welcome: 'Главная', main: 'Новая тренировка', history: 'История тренировок', settings: 'Настройки' };
+  const pageTitle = document.querySelector('.content-header h2');
+  if (pageTitle && pageTitles[pageName]) pageTitle.textContent = pageTitles[pageName];
+}      
       async function loadWelcomePage() {
         // Load statistics from localStorage
         try {
