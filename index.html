@@ -312,6 +312,128 @@
           border-bottom-color: var(--accent);
         }
       }
+      
+      /* Welcome page styles */
+      .welcome-card {
+        background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 14px;
+        padding: 32px;
+        text-align: center;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      
+      .welcome-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        color: var(--accent);
+      }
+      
+      .welcome-title {
+        font-size: 28px;
+        font-weight: 600;
+        margin-bottom: 12px;
+      }
+      
+      .welcome-subtitle {
+        font-size: 16px;
+        color: var(--muted);
+        margin-bottom: 24px;
+        line-height: 1.6;
+      }
+      
+      .welcome-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+        margin-top: 24px;
+      }
+      
+      .stat-item {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(148,163,184,0.2);
+        border-radius: 10px;
+        padding: 16px;
+        transition: all 0.2s ease;
+      }
+      
+      .stat-item:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: var(--accent);
+      }
+      
+      .stat-value {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--accent);
+        margin-bottom: 4px;
+      }
+      
+      .stat-label {
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .welcome-features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 32px;
+      }
+      
+      .feature-item {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(148,163,184,0.1);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: left;
+      }
+      
+      .feature-icon {
+        font-size: 24px;
+        margin-bottom: 12px;
+        color: var(--accent);
+      }
+      
+      .feature-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      
+      .feature-desc {
+        font-size: 14px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      
+      /* Button styles */
+      .btn-primary {
+        background: linear-gradient(135deg, var(--accent), #16a34a);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+      }
+      
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #16a34a, var(--accent));
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+      }
+      
+      .btn-primary:active {
+        transform: translateY(0);
+      }
     </style>
   </head>
   <body>
@@ -324,7 +446,11 @@
         </div>
         
         <nav class="sidebar-nav">
-          <div class="nav-item active" data-page="main">
+          <div class="nav-item active" data-page="welcome">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-text">Главная</div>
+          </div>
+          <div class="nav-item" data-page="main">
             <div class="nav-icon">🏋️</div>
             <div class="nav-text">Тренировка</div>
           </div>
@@ -341,8 +467,87 @@
       
       <!-- Main Content Area -->
       <div class="main-content">
+        <!-- Welcome Page Content -->
+        <div id="welcome-page" class="page-content">
+          <div class="content-header">
+            <h2>Главная</h2>
+            <p>Добро пожаловать в MyFitness</p>
+          </div>
+          
+          <div class="content-body">
+            <div class="welcome-card">
+              <div class="welcome-icon">💪</div>
+              <h3 class="welcome-title">Добро пожаловать в MyFitness!</h3>
+              <p class="welcome-subtitle">
+                Ваш персональный помощник для отслеживания тренировок, анализа прогресса и достижения фитнес-целей. 
+                Синхронизируйте данные с Яндекс.Диском и тренируйтесь эффективно!
+              </p>
+              
+              <div class="welcome-stats">
+                <div class="stat-item">
+                  <div class="stat-value" id="totalWorkouts">0</div>
+                  <div class="stat-label">Всего тренировок</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-value" id="thisWeek">0</div>
+                  <div class="stat-label">На этой неделе</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-value" id="thisMonth">0</div>
+                  <div class="stat-label">В этом месяце</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-value" id="thisYear">0</div>
+                  <div class="stat-label">В этом году</div>
+                </div>
+              </div>
+              
+              <div class="welcome-features">
+                <div class="feature-item">
+                  <div class="feature-icon">📝</div>
+                  <div class="feature-title">Ведение тренировок</div>
+                  <div class="feature-desc">Записывайте тренировки по циклам, неделям и сессиям с детальными подходами</div>
+                </div>
+                <div class="feature-item">
+                  <div class="feature-icon">📊</div>
+                  <div class="feature-title">Аналитика прогресса</div>
+                  <div class="feature-desc">Отслеживайте статистику, графики и историю всех ваших тренировок</div>
+                </div>
+                <div class="feature-item">
+                  <div class="feature-icon">☁️</div>
+                  <div class="feature-title">Синхронизация</div>
+                  <div class="feature-desc">Безопасная синхронизация данных с Яндекс.Диском</div>
+                </div>
+              </div>
+              
+              <div style="margin-top: 32px; text-align: center;">
+                <button class="btn-primary" onclick="showPage('main')" style="padding: 12px 24px; font-size: 16px;">
+                  🏋️ Начать тренировку
+                </button>
+              </div>
+              
+              <!-- Test data section (only visible in development) -->
+              <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid rgba(148,163,184,0.2);">
+                <details style="text-align: left;">
+                  <summary style="cursor: pointer; color: var(--muted); font-size: 14px;">
+                    🧪 Тестовые данные (для разработки)
+                  </summary>
+                  <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: center;">
+                    <button onclick="loadTestData()" style="padding: 8px 16px; background: var(--warn); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                      Загрузить тестовые данные
+                    </button>
+                    <button onclick="clearTestData()" style="padding: 8px 16px; background: var(--danger); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                      Очистить данные
+                    </button>
+                  </div>
+                </details>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <!-- Main Page Content -->
-        <div id="main-page" class="page-content">
+        <div id="main-page" class="page-content" style="display: none;">
           <div class="content-header">
             <h2>Новая тренировка</h2>
             <p>Заполните данные о вашей тренировке</p>
@@ -522,11 +727,74 @@
         }
         
         // Load page content if needed
-        if (pageName === 'history') {
+        if (pageName === 'welcome') {
+          loadWelcomePage();
+        } else if (pageName === 'history') {
           loadHistoryPage();
         } else if (pageName === 'settings') {
           loadSettingsPage();
         }
+        
+        // Update page title
+        const pageTitles = {
+          'welcome': 'Главная',
+          'main': 'Новая тренировка',
+          'history': 'История тренировок',
+          'settings': 'Настройки'
+        };
+        
+        const pageTitle = document.querySelector('.content-header h2');
+        if (pageTitle && pageTitles[pageName]) {
+          pageTitle.textContent = pageTitles[pageName];
+        }
+      }
+      
+      async function loadWelcomePage() {
+        // Load statistics from localStorage
+        try {
+          const workouts = JSON.parse(localStorage.getItem('workouts') || '[]');
+          const now = new Date();
+          const currentWeek = getWeekNumber(now);
+          const currentMonth = now.getMonth();
+          const currentYear = now.getFullYear();
+          
+          let totalWorkouts = workouts.length;
+          let thisWeekCount = 0;
+          let thisMonthCount = 0;
+          let thisYearCount = 0;
+          
+          workouts.forEach(workout => {
+            const workoutDate = new Date(workout.date);
+            const workoutWeek = getWeekNumber(workoutDate);
+            const workoutMonth = workoutDate.getMonth();
+            const workoutYear = workoutDate.getFullYear();
+            
+            if (workoutYear === currentYear) {
+              thisYearCount++;
+              if (workoutMonth === currentMonth) {
+                thisMonthCount++;
+                if (workoutWeek === currentWeek) {
+                  thisWeekCount++;
+                }
+              }
+            }
+          });
+          
+          // Update statistics
+          document.getElementById('totalWorkouts').textContent = totalWorkouts;
+          document.getElementById('thisWeek').textContent = thisWeekCount;
+          document.getElementById('thisMonth').textContent = thisMonthCount;
+          document.getElementById('thisYear').textContent = thisYearCount;
+          
+        } catch (e) {
+          console.warn('Failed to load welcome page statistics:', e);
+        }
+      }
+      
+      function getWeekNumber(date) {
+        const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+        const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+        return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
       }
       
       async function loadHistoryPage() {
@@ -1050,6 +1318,11 @@
           
           showStatus('Тренировка сохранена!', 'success');
           
+          // Update welcome page statistics if it's visible
+          if (document.getElementById('welcome-page').style.display !== 'none') {
+            loadWelcomePage();
+          }
+          
           // Clear form
           cycleEl.value = '';
           groups.forEach(g => {
@@ -1115,6 +1388,109 @@
       // Initialize
       loadConfig();
       ensureInitialSets();
+      
+      // Initialize welcome page
+      loadWelcomePage();
+      
+      // Test data functions
+      function loadTestData() {
+        const testWorkouts = [
+          {
+            date: new Date(2024, 11, 15).toISOString(),
+            cycle: 1,
+            week: 1,
+            session: 1,
+            exercises: [
+              {
+                group: 'Грудь',
+                exercise: 'Жим лежа',
+                sets: [
+                  { reps: 10, weight: 60 },
+                  { reps: 8, weight: 65 },
+                  { reps: 6, weight: 70 }
+                ]
+              }
+            ]
+          },
+          {
+            date: new Date(2024, 11, 17).toISOString(),
+            cycle: 1,
+            week: 1,
+            session: 2,
+            exercises: [
+              {
+                group: 'Спина',
+                exercise: 'Подтягивания',
+                sets: [
+                  { reps: 8, weight: 0 },
+                  { reps: 6, weight: 0 },
+                  { reps: 5, weight: 0 }
+                ]
+              }
+            ]
+          },
+          {
+            date: new Date(2024, 11, 20).toISOString(),
+            cycle: 1,
+            week: 2,
+            session: 1,
+            exercises: [
+              {
+                group: 'Ноги',
+                exercise: 'Присед со штангой',
+                sets: [
+                  { reps: 12, weight: 80 },
+                  { reps: 10, weight: 85 },
+                  { reps: 8, weight: 90 }
+                ]
+              }
+            ]
+          },
+          {
+            date: new Date(2025, 0, 5).toISOString(),
+            cycle: 2,
+            week: 1,
+            session: 1,
+            exercises: [
+              {
+                group: 'Плечи',
+                exercise: 'Разведение гантелей в стороны',
+                sets: [
+                  { reps: 12, weight: 8 },
+                  { reps: 10, weight: 10 },
+                  { reps: 8, weight: 12 }
+                ]
+              }
+            ]
+          },
+          {
+            date: new Date(2025, 0, 7).toISOString(),
+            cycle: 2,
+            week: 1,
+            session: 2,
+            exercises: [
+              {
+                group: 'Бицепс',
+                exercise: 'Хаммер с гантелями',
+                sets: [
+                  { reps: 12, weight: 12 },
+                  { reps: 10, weight: 14 },
+                  { reps: 8, weight: 16 }
+                ]
+              }
+            ]
+          }
+        ];
+        
+        localStorage.setItem('workouts', JSON.stringify(testWorkouts));
+        alert('Тестовые данные загружены! Обновите страницу для просмотра статистики.');
+      }
+      
+      function clearTestData() {
+        localStorage.removeItem('workouts');
+        alert('Тестовые данные удалены!');
+        loadWelcomePage(); // Обновляем статистику
+      }
     </script>
   </body>
 </html>
