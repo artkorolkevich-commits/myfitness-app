@@ -566,6 +566,34 @@
 }
 .wf-row .group-exercises { grid-column: 2 / 4; }
 .wf-row .group-actions { grid-column: 3 / 4; display: flex; justify-content: flex-end; }
+      /* Mobile fixes for multi-exercise layout */
+.exercise-block { position: relative; }
+.exercise-header {
+  display: grid;
+  grid-template-columns: 1fr auto;  /* select | remove */
+  gap: 8px;
+  align-items: center;
+}
+.exercise-select { width: 100%; min-width: 0; }
+.remove-exercise {
+  position: static;                  /* чтобы не “выползал” за пределы */
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(239,68,68,0.4);
+  background: rgba(239,68,68,0.08);
+  color: var(--danger);
+}
+
+/* Грид строки группы на узких экранах — в одну колонку */
+@media (max-width: 600px) {
+  .wf-grid { grid-template-columns: 1fr !important; gap: 12px; }
+  .wf-row { overflow: hidden; }
+  .wf-row .label { grid-column: 1 / -1; }
+  .wf-row select { grid-column: 1 / -1; }
+  .wf-row .group-exercises { grid-column: 1 / -1; }
+  .wf-row .group-actions { grid-column: 1 / -1; justify-content: stretch; }
+  .group-actions .btn-secondary { width: 100%; }
+}
     </style>
     <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
