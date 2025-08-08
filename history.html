@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>История тренировок</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card: #111827;
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+        --accent: #22c55e;
+        --warn: #f59e0b;
+        --danger: #ef4444;
+        --yandex: #fc3f1d;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        line-height: 1.6;
+      }
+      
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      
+      .header {
+        margin-bottom: 24px;
+      }
+      
+      .header h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+        font-weight: 600;
+      }
+      
+      .header p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 16px;
+      }
+      
+      /* Stats Grid */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+      
+      .stat-card {
+        background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+      }
+      
+      .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--accent);
+        margin-bottom: 8px;
+      }
+      
+      .stat-label {
+        font-size: 14px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      /* Filters */
+      .filters {
+        background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+      }
+      
+      .filters h3 {
+        margin: 0 0 16px;
+        font-size: 18px;
+        font-weight: 600;
+      }
+      
+      .filter-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+        align-items: end;
+      }
+      
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .filter-group label {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .filter-group input,
+      .filter-group select {
+        background: #0b1220;
+        color: var(--text);
+        border: 1px solid rgba(148,163,184,0.25);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 14px;
+        outline: none;
+      }
+      
+      .filter-group input:focus,
+      .filter-group select:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px rgba(34,197,94,0.2);
+      }
+      
+      .filter-actions {
+        display: flex;
+        gap: 12px;
+        align-items: end;
+      }
+      
+      .btn {
+        background: linear-gradient(180deg, var(--accent), #16a34a);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+      }
+      
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+      
+      .btn-secondary {
+        background: linear-gradient(180deg, #6b7280, #4b5563);
+      }
+      
+      /* History List */
+      .history-list {
+        display: grid;
+        gap: 16px;
+      }
+      
+      .history-item {
+        background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 12px;
+        padding: 20px;
+        transition: transform 0.2s ease;
+      }
+      
+      .history-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      }
+      
+      .history-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(148,163,184,0.2);
+      }
+      
+      .history-meta {
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .history-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      
+      .history-date {
+        font-size: 14px;
+        color: var(--muted);
+      }
+      
+      .history-stats {
+        display: flex;
+        gap: 16px;
+        font-size: 14px;
+        color: var(--muted);
+      }
+      
+      .history-exercises {
+        display: grid;
+        gap: 12px;
+      }
+      
+      .exercise-item {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(148,163,184,0.1);
+        border-radius: 8px;
+        padding: 12px;
+      }
+      
+      .exercise-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      
+      .exercise-name {
+        font-weight: 600;
+        color: var(--accent);
+      }
+      
+      .exercise-group {
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .sets-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      
+      .set-badge {
+        background: rgba(34,197,94,0.1);
+        border: 1px solid rgba(34,197,94,0.3);
+        color: var(--accent);
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+      }
+      
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--muted);
+      }
+      
+      .empty-state h3 {
+        margin: 0 0 12px;
+        font-size: 20px;
+        font-weight: 600;
+      }
+      
+      .empty-state p {
+        margin: 0;
+        font-size: 16px;
+      }
+      
+      /* Loading */
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: var(--muted);
+      }
+      
+      .loading::after {
+        content: '';
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--muted);
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 1s linear infinite;
+        margin-left: 12px;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>История тренировок</h1>
+        <p>Просмотр и анализ ваших тренировок</p>
+      </div>
+      
+      <!-- Statistics -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="totalWorkouts">0</div>
+          <div class="stat-label">Всего тренировок</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="thisMonth">0</div>
+          <div class="stat-label">В этом месяце</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="totalSets">0</div>
+          <div class="stat-label">Всего подходов</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="avgWeight">0</div>
+          <div class="stat-label">Средний вес (кг)</div>
+        </div>
+      </div>
+      
+      <!-- Filters -->
+      <div class="filters">
+        <h3>Фильтры</h3>
+        <div class="filter-row">
+          <div class="filter-group">
+            <label for="filterCycle">Цикл</label>
+            <input id="filterCycle" type="number" placeholder="Все циклы" />
+          </div>
+          <div class="filter-group">
+            <label for="filterWeek">Неделя</label>
+            <select id="filterWeek">
+              <option value="">Все недели</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filterSession">Тренировка</label>
+            <select id="filterSession">
+              <option value="">Все тренировки</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filterDate">Дата</label>
+            <input id="filterDate" type="date" />
+          </div>
+          <div class="filter-actions">
+            <button class="btn" id="applyFilters">Применить</button>
+            <button class="btn btn-secondary" id="clearFilters">Сбросить</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- History List -->
+      <div class="history-list" id="historyList">
+        <div class="loading">Загрузка истории тренировок...</div>
+      </div>
+    </div>
+
+    <script>
+      // Mock data for demonstration
+      const mockWorkouts = [
+        {
+          id: 1,
+          date: '2024-01-15T10:30:00Z',
+          cycle: 1,
+          week: 1,
+          session: 1,
+          exercises: [
+            {
+              group: 'Грудь',
+              exercise: 'Жим лежа',
+              sets: [
+                { reps: 10, weight: 80 },
+                { reps: 8, weight: 85 },
+                { reps: 6, weight: 90 }
+              ]
+            },
+            {
+              group: 'Спина',
+              exercise: 'Подтягивания',
+              sets: [
+                { reps: 12, weight: null },
+                { reps: 10, weight: null },
+                { reps: 8, weight: null }
+              ]
+            }
+          ]
+        },
+        {
+          id: 2,
+          date: '2024-01-17T14:20:00Z',
+          cycle: 1,
+          week: 1,
+          session: 2,
+          exercises: [
+            {
+              group: 'Ноги',
+              exercise: 'Присед со штангой',
+              sets: [
+                { reps: 8, weight: 100 },
+                { reps: 6, weight: 110 },
+                { reps: 4, weight: 120 }
+              ]
+            }
+          ]
+        }
+      ];
+
+      let currentWorkouts = [...mockWorkouts];
+
+      function updateStats(workouts) {
+        const totalWorkouts = workouts.length;
+        const thisMonth = workouts.filter(w => {
+          const workoutDate = new Date(w.date);
+          const now = new Date();
+          return workoutDate.getMonth() === now.getMonth() && 
+                 workoutDate.getFullYear() === now.getFullYear();
+        }).length;
+        
+        const totalSets = workouts.reduce((sum, w) => {
+          return sum + w.exercises.reduce((exSum, ex) => exSum + ex.sets.length, 0);
+        }, 0);
+        
+        const allWeights = workouts.flatMap(w => 
+          w.exercises.flatMap(ex => 
+            ex.sets.map(s => s.weight).filter(w => w !== null)
+          )
+        );
+        const avgWeight = allWeights.length > 0 
+          ? Math.round(allWeights.reduce((sum, w) => sum + w, 0) / allWeights.length)
+          : 0;
+
+        document.getElementById('totalWorkouts').textContent = totalWorkouts;
+        document.getElementById('thisMonth').textContent = thisMonth;
+        document.getElementById('totalSets').textContent = totalSets;
+        document.getElementById('avgWeight').textContent = avgWeight;
+      }
+
+      function renderWorkouts(workouts) {
+        const historyList = document.getElementById('historyList');
+        
+        if (workouts.length === 0) {
+          historyList.innerHTML = `
+            <div class="empty-state">
+              <h3>История пуста</h3>
+              <p>Начните с первой тренировки, чтобы увидеть здесь ваши записи</p>
+            </div>
+          `;
+          return;
+        }
+
+        historyList.innerHTML = workouts.map(workout => {
+          const date = new Date(workout.date);
+          const exercisesHtml = workout.exercises.map(exercise => {
+            const setsHtml = exercise.sets.map((set, index) => 
+              `<span class="set-badge">${index + 1}) ${set.reps}×${set.weight || '—'}кг</span>`
+            ).join('');
+            
+            return `
+              <div class="exercise-item">
+                <div class="exercise-header">
+                  <div class="exercise-name">${exercise.exercise}</div>
+                  <div class="exercise-group">${exercise.group}</div>
+                </div>
+                <div class="sets-list">${setsHtml}</div>
+              </div>
+            `;
+          }).join('');
+
+          return `
+            <div class="history-item">
+              <div class="history-header">
+                <div class="history-meta">
+                  <div class="history-title">Цикл ${workout.cycle}, Неделя ${workout.week}, Тренировка ${workout.session}</div>
+                  <div class="history-date">${date.toLocaleDateString('ru-RU', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}</div>
+                </div>
+                <div class="history-stats">
+                  <span>${workout.exercises.length} упражнений</span>
+                  <span>${workout.exercises.reduce((sum, ex) => sum + ex.sets.length, 0)} подходов</span>
+                </div>
+              </div>
+              <div class="history-exercises">${exercisesHtml}</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function applyFilters() {
+        const cycle = document.getElementById('filterCycle').value;
+        const week = document.getElementById('filterWeek').value;
+        const session = document.getElementById('filterSession').value;
+        const date = document.getElementById('filterDate').value;
+
+        let filtered = [...mockWorkouts];
+
+        if (cycle) {
+          filtered = filtered.filter(w => w.cycle === parseInt(cycle));
+        }
+        if (week) {
+          filtered = filtered.filter(w => w.week === parseInt(week));
+        }
+        if (session) {
+          filtered = filtered.filter(w => w.session === parseInt(session));
+        }
+        if (date) {
+          filtered = filtered.filter(w => {
+            const workoutDate = new Date(w.date).toISOString().split('T')[0];
+            return workoutDate === date;
+          });
+        }
+
+        currentWorkouts = filtered;
+        updateStats(filtered);
+        renderWorkouts(filtered);
+      }
+
+      function clearFilters() {
+        document.getElementById('filterCycle').value = '';
+        document.getElementById('filterWeek').value = '';
+        document.getElementById('filterSession').value = '';
+        document.getElementById('filterDate').value = '';
+        
+        currentWorkouts = [...mockWorkouts];
+        updateStats(currentWorkouts);
+        renderWorkouts(currentWorkouts);
+      }
+
+      // Event listeners
+      document.getElementById('applyFilters').addEventListener('click', applyFilters);
+      document.getElementById('clearFilters').addEventListener('click', clearFilters);
+
+      // Initialize
+      updateStats(currentWorkouts);
+      renderWorkouts(currentWorkouts);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1120 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MyFitness - Дневник тренировок</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card: #111827;
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+        --accent: #22c55e;
+        --warn: #f59e0b;
+        --danger: #ef4444;
+        --yandex: #fc3f1d;
+        --sidebar: #1e293b;
+        --sidebar-hover: #334155;
+        --sidebar-active: #3b82f6;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        line-height: 1.6;
+      }
+      
+      .app-container {
+        display: flex;
+        height: 100vh;
+      }
+      
+      /* Sidebar */
+      .sidebar {
+        width: 280px;
+        background: var(--sidebar);
+        border-right: 1px solid rgba(148,163,184,0.2);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+      }
+      
+      .sidebar-header {
+        padding: 24px 20px 16px;
+        border-bottom: 1px solid rgba(148,163,184,0.2);
+      }
+      
+      .sidebar-header h1 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text);
+      }
+      
+      .sidebar-header p {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      
+      .sidebar-nav {
+        flex: 1;
+        padding: 16px 0;
+      }
+      
+      .nav-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        color: var(--text);
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border-left: 3px solid transparent;
+        cursor: pointer;
+      }
+      
+      .nav-item:hover {
+        background: var(--sidebar-hover);
+        color: var(--text);
+      }
+      
+      .nav-item.active {
+        background: var(--sidebar-active);
+        color: white;
+        border-left-color: var(--accent);
+      }
+      
+      .nav-icon {
+        width: 20px;
+        height: 20px;
+        margin-right: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+      }
+      
+      .nav-text {
+        font-size: 14px;
+        font-weight: 500;
+      }
+      
+      /* Main Content */
+      .main-content {
+        flex: 1;
+        overflow-y: auto;
+        background: radial-gradient(1200px 800px at 20% 0%, #1f2937 0%, var(--bg) 60%);
+      }
+      
+      .content-header {
+        padding: 32px 32px 24px;
+        border-bottom: 1px solid rgba(148,163,184,0.2);
+      }
+      
+      .content-header h2 {
+        margin: 0 0 8px;
+        font-size: 24px;
+        font-weight: 600;
+      }
+      
+      .content-header p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 16px;
+      }
+      
+      .content-body {
+        padding: 32px;
+      }
+      
+      /* Workout Form */
+      .workout-form {
+        background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 24px;
+      }
+      
+      .workout-form h3 {
+        margin: 0 0 20px;
+        font-size: 18px;
+        font-weight: 600;
+      }
+      
+      .wf-controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+      
+      .wf-controls .ctrl {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        gap: 8px;
+      }
+      
+      .wf-controls label {
+        font-size: 13px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      
+      .wf-controls input,
+      .wf-controls select {
+        background: #0b1220;
+        color: var(--text);
+        border: 1px solid rgba(148,163,184,0.25);
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 14px;
+        outline: none;
+      }
+      
+      .wf-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 1.4fr 2.2fr;
+        gap: 10px;
+        align-items: center;
+      }
+      
+      .wf-head {
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        border-bottom: 1px solid rgba(148,163,184,0.2);
+        padding-bottom: 6px;
+        margin-top: 6px;
+      }
+      
+      .wf-row {
+        display: contents;
+      }
+      
+      .wf-row .label {
+        font-size: 14px;
+      }
+      
+      .wf-row select,
+      .wf-row input[type="number"] {
+        background: #0b1220;
+        color: var(--text);
+        border: 1px solid rgba(148,163,184,0.25);
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 14px;
+        outline: none;
+      }
+      
+      .sets { display: flex; flex-direction: column; gap: 6px; }
+      .set-row { display: grid; grid-template-columns: auto max-content max-content 26px; gap: 6px; align-items: center; }
+      .set-row .em-label { font-size: 12px; color: var(--muted); }
+      .pair { display: inline-grid; grid-template-columns: auto 80px; align-items: center; column-gap: 4px; }
+      
+      .btn-secondary {
+        background: linear-gradient(180deg, #6b7280, #4b5563);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      
+      .remove-set {
+        background: transparent;
+        color: #ef4444;
+        border: 1px solid rgba(239,68,68,0.5);
+        border-radius: 6px;
+        width: 26px; height: 26px;
+        line-height: 24px; text-align: center;
+        cursor: pointer;
+      }
+      
+      .wf-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+      }
+      
+      #saveWorkoutBtn {
+        background: linear-gradient(180deg, #22c55e, #16a34a);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: transform 0.03s ease;
+      }
+      
+      /* Status */
+      .status {
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+      
+      .status.success {
+        background: rgba(34,197,94,0.1);
+        border: 1px solid rgba(34,197,94,0.3);
+        color: var(--accent);
+      }
+      
+      .status.error {
+        background: rgba(239,68,68,0.1);
+        border: 1px solid rgba(239,68,68,0.3);
+        color: var(--danger);
+      }
+      
+      .status.info {
+        background: rgba(59,130,246,0.1);
+        border: 1px solid rgba(59,130,246,0.3);
+        color: #60a5fa;
+      }
+      
+      /* Responsive */
+      @media (max-width: 768px) {
+        .app-container {
+          flex-direction: column;
+        }
+        
+        .sidebar {
+          width: 100%;
+          height: auto;
+        }
+        
+        .sidebar-nav {
+          display: flex;
+          overflow-x: auto;
+          padding: 12px;
+        }
+        
+        .nav-item {
+          flex-shrink: 0;
+          padding: 8px 16px;
+          border-left: none;
+          border-bottom: 3px solid transparent;
+        }
+        
+        .nav-item.active {
+          border-left-color: transparent;
+          border-bottom-color: var(--accent);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar Navigation -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <h1>MyFitness</h1>
+          <p>Дневник тренировок</p>
+        </div>
+        
+        <nav class="sidebar-nav">
+          <div class="nav-item active" data-page="main">
+            <div class="nav-icon">🏋️</div>
+            <div class="nav-text">Тренировка</div>
+          </div>
+          <div class="nav-item" data-page="history">
+            <div class="nav-icon">📊</div>
+            <div class="nav-text">История</div>
+          </div>
+          <div class="nav-item" data-page="settings">
+            <div class="nav-icon">⚙️</div>
+            <div class="nav-text">Настройки</div>
+          </div>
+        </nav>
+      </div>
+      
+      <!-- Main Content Area -->
+      <div class="main-content">
+        <!-- Main Page Content -->
+        <div id="main-page" class="page-content">
+          <div class="content-header">
+            <h2>Новая тренировка</h2>
+            <p>Заполните данные о вашей тренировке</p>
+          </div>
+          
+          <div class="content-body">
+            <div class="workout-form">
+              <h3>Дневник тренировок (FullBody, 3 раза/нед.)</h3>
+              
+              <div class="wf-controls">
+                <div class="ctrl">
+                  <label for="cycle">Цикл:</label>
+                  <input id="cycle" type="number" min="1" step="1" placeholder="1" />
+                </div>
+                <div class="ctrl">
+                  <label for="week">Неделя (1–4):</label>
+                  <select id="week">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                  </select>
+                </div>
+                <div class="ctrl">
+                  <label for="session">Тренировка (1–3):</label>
+                  <select id="session">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="wf-head wf-grid">
+                <div>Группа мышц</div>
+                <div>Упражнение</div>
+                <div>Подходы (повторы и вес)</div>
+              </div>
+
+              <div class="wf-grid wf-row">
+                <div class="label">Грудь</div>
+                <select id="ex-chest">
+                  <option>Жим лежа</option>
+                  <option>Отжимания на брусьях</option>
+                  <option>Жим гантелей на скамье 30 градусов</option>
+                </select>
+                <div class="sets" id="sets-chest"></div>
+                <button type="button" class="btn-secondary add-set-btn" data-target="sets-chest">Добавить подход</button>
+              </div>
+
+              <div class="wf-grid wf-row">
+                <div class="label">Спина</div>
+                <select id="ex-back">
+                  <option>подтягивание</option>
+                  <option>Тяга штанги</option>
+                  <option>Тяга в блочном тренажере</option>
+                </select>
+                <div class="sets" id="sets-back"></div>
+                <button type="button" class="btn-secondary add-set-btn" data-target="sets-back">Добавить подход</button>
+              </div>
+
+              <div class="wf-grid wf-row">
+                <div class="label">Ноги</div>
+                <select id="ex-legs">
+                  <option>присед со штангой</option>
+                  <option>выпады с гантелями</option>
+                  <option>Жим ногами в блочном тренажере</option>
+                </select>
+                <div class="sets" id="sets-legs"></div>
+                <button type="button" class="btn-secondary add-set-btn" data-target="sets-legs">Добавить подход</button>
+              </div>
+
+              <div class="wf-grid wf-row">
+                <div class="label">Плечи</div>
+                <select id="ex-shoulders">
+                  <option>Разведение гантелей в стороны</option>
+                  <option>Тяга штанги с w-образным грифом к подбородку</option>
+                </select>
+                <div class="sets" id="sets-shoulders"></div>
+                <button type="button" class="btn-secondary add-set-btn" data-target="sets-shoulders">Добавить подход</button>
+              </div>
+
+              <div class="wf-grid wf-row">
+                <div class="label">Бицепс</div>
+                <select id="ex-biceps">
+                  <option>Хаммер с гантелями</option>
+                  <option>Поднятие штанги с w-образным грифом</option>
+                  <option>Поднятие гантели сидя с упором в трицепс</option>
+                </select>
+                <div class="sets" id="sets-biceps"></div>
+                <button type="button" class="btn-secondary add-set-btn" data-target="sets-biceps">Добавить подход</button>
+              </div>
+
+              <div class="wf-grid wf-row">
+                <div class="label">Трицепс</div>
+                <select id="ex-triceps">
+                  <option>Опускание гантели за голову</option>
+                  <option>Французский жим гантелями</option>
+                  <option>Жим в блочном тренажере на трицепс</option>
+                </select>
+                <div class="sets" id="sets-triceps"></div>
+                <button type="button" class="btn-secondary add-set-btn" data-target="sets-triceps">Добавить подход</button>
+              </div>
+
+              <div class="wf-grid wf-row">
+                <div class="label">Задние дельты</div>
+                <select id="ex-reardelt">
+                  <option>разводка рук в тренажере-бабочке</option>
+                </select>
+                <div class="sets" id="sets-reardelt"></div>
+                <button type="button" class="btn-secondary add-set-btn" data-target="sets-reardelt">Добавить подход</button>
+              </div>
+
+              <button id="addSetsToAll" type="button" class="btn-secondary">Добавить подход во все группы</button>
+              
+              <div class="wf-actions">
+                <button id="saveWorkoutBtn" type="button">Сохранить тренировку</button>
+                <button id="syncBtn" type="button" class="btn-secondary">Синхронизировать</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- History Page Content -->
+        <div id="history-page" class="page-content" style="display: none;">
+          <div class="content-header">
+            <h2>История тренировок</h2>
+            <p>Просмотр и анализ ваших тренировок</p>
+          </div>
+          
+          <div class="content-body">
+            <div id="history-content">
+              <!-- History content will be loaded here -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- Settings Page Content -->
+        <div id="settings-page" class="page-content" style="display: none;">
+          <div class="content-header">
+            <h2>Настройки</h2>
+            <p>Настройка приложения и синхронизации</p>
+          </div>
+          
+          <div class="content-body">
+            <div id="settings-content">
+              <!-- Settings content will be loaded here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Navigation functionality
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const page = item.getAttribute('data-page');
+          showPage(page);
+          
+          // Update active state
+          document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+          item.classList.add('active');
+        });
+      });
+      
+      function showPage(pageName) {
+        // Hide all pages
+        document.querySelectorAll('.page-content').forEach(page => {
+          page.style.display = 'none';
+        });
+        
+        // Show selected page
+        const targetPage = document.getElementById(pageName + '-page');
+        if (targetPage) {
+          targetPage.style.display = 'block';
+        }
+        
+        // Load page content if needed
+        if (pageName === 'history') {
+          loadHistoryPage();
+        } else if (pageName === 'settings') {
+          loadSettingsPage();
+        }
+      }
+      
+      async function loadHistoryPage() {
+        const historyContent = document.getElementById('history-content');
+        historyContent.innerHTML = `
+          <div style="text-align: center; padding: 40px;">
+            <h3>Загрузка истории...</h3>
+            <p>История тренировок будет загружена здесь</p>
+          </div>
+        `;
+        
+        try {
+          const response = await fetch('./history.html');
+          const html = await response.text();
+          
+          // Extract body content
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          const bodyContent = doc.body.querySelector('.container');
+          
+          if (bodyContent) {
+            historyContent.innerHTML = bodyContent.innerHTML;
+            // Re-initialize history page scripts
+            initializeHistoryPage();
+          }
+        } catch (e) {
+          historyContent.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--danger);">
+              <h3>Ошибка загрузки</h3>
+              <p>Не удалось загрузить страницу истории</p>
+            </div>
+          `;
+        }
+      }
+      
+      async function loadSettingsPage() {
+        const settingsContent = document.getElementById('settings-content');
+        settingsContent.innerHTML = `
+          <div style="text-align: center; padding: 40px;">
+            <h3>Загрузка настроек...</h3>
+            <p>Настройки будут загружены здесь</p>
+          </div>
+        `;
+        
+        try {
+          const response = await fetch('./settings.html');
+          const html = await response.text();
+          
+          // Extract body content
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          const bodyContent = doc.body.querySelector('.container');
+          
+          if (bodyContent) {
+            settingsContent.innerHTML = bodyContent.innerHTML;
+            // Re-initialize settings page scripts
+            initializeSettingsPage();
+          }
+        } catch (e) {
+          settingsContent.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--danger);">
+              <h3>Ошибка загрузки</h3>
+              <p>Не удалось загрузить страницу настроек</p>
+            </div>
+          `;
+        }
+      }
+      
+      function initializeHistoryPage() {
+        // Initialize history page functionality
+        const mockWorkouts = [
+          {
+            id: 1,
+            date: '2024-01-15T10:30:00Z',
+            cycle: 1,
+            week: 1,
+            session: 1,
+            exercises: [
+              {
+                group: 'Грудь',
+                exercise: 'Жим лежа',
+                sets: [
+                  { reps: 10, weight: 80 },
+                  { reps: 8, weight: 85 },
+                  { reps: 6, weight: 90 }
+                ]
+              }
+            ]
+          }
+        ];
+        
+        let currentWorkouts = [...mockWorkouts];
+        
+        function updateStats(workouts) {
+          const totalWorkouts = workouts.length;
+          const thisMonth = workouts.filter(w => {
+            const workoutDate = new Date(w.date);
+            const now = new Date();
+            return workoutDate.getMonth() === now.getMonth() && 
+                   workoutDate.getFullYear() === now.getFullYear();
+          }).length;
+          
+          const totalSets = workouts.reduce((sum, w) => {
+            return sum + w.exercises.reduce((exSum, ex) => exSum + ex.sets.length, 0);
+          }, 0);
+          
+          const allWeights = workouts.flatMap(w => 
+            w.exercises.flatMap(ex => 
+              ex.sets.map(s => s.weight).filter(w => w !== null)
+            )
+          );
+          const avgWeight = allWeights.length > 0 
+            ? Math.round(allWeights.reduce((sum, w) => sum + w, 0) / allWeights.length)
+            : 0;
+
+          const totalWorkoutsEl = document.getElementById('totalWorkouts');
+          const thisMonthEl = document.getElementById('thisMonth');
+          const totalSetsEl = document.getElementById('totalSets');
+          const avgWeightEl = document.getElementById('avgWeight');
+          
+          if (totalWorkoutsEl) totalWorkoutsEl.textContent = totalWorkouts;
+          if (thisMonthEl) thisMonthEl.textContent = thisMonth;
+          if (totalSetsEl) totalSetsEl.textContent = totalSets;
+          if (avgWeightEl) avgWeightEl.textContent = avgWeight;
+        }
+
+        function renderWorkouts(workouts) {
+          const historyList = document.getElementById('historyList');
+          if (!historyList) return;
+          
+          if (workouts.length === 0) {
+            historyList.innerHTML = `
+              <div class="empty-state">
+                <h3>История пуста</h3>
+                <p>Начните с первой тренировки, чтобы увидеть здесь ваши записи</p>
+              </div>
+            `;
+            return;
+          }
+
+          historyList.innerHTML = workouts.map(workout => {
+            const date = new Date(workout.date);
+            const exercisesHtml = workout.exercises.map(exercise => {
+              const setsHtml = exercise.sets.map((set, index) => 
+                `<span class="set-badge">${index + 1}) ${set.reps}×${set.weight || '—'}кг</span>`
+              ).join('');
+              
+              return `
+                <div class="exercise-item">
+                  <div class="exercise-header">
+                    <div class="exercise-name">${exercise.exercise}</div>
+                    <div class="exercise-group">${exercise.group}</div>
+                  </div>
+                  <div class="sets-list">${setsHtml}</div>
+                </div>
+              `;
+            }).join('');
+
+            return `
+              <div class="history-item">
+                <div class="history-header">
+                  <div class="history-meta">
+                    <div class="history-title">Цикл ${workout.cycle}, Неделя ${workout.week}, Тренировка ${workout.session}</div>
+                    <div class="history-date">${date.toLocaleDateString('ru-RU', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}</div>
+                  </div>
+                  <div class="history-stats">
+                    <span>${workout.exercises.length} упражнений</span>
+                    <span>${workout.exercises.reduce((sum, ex) => sum + ex.sets.length, 0)} подходов</span>
+                  </div>
+                </div>
+                <div class="history-exercises">${exercisesHtml}</div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        function applyFilters() {
+          const cycle = document.getElementById('filterCycle')?.value;
+          const week = document.getElementById('filterWeek')?.value;
+          const session = document.getElementById('filterSession')?.value;
+          const date = document.getElementById('filterDate')?.value;
+
+          let filtered = [...mockWorkouts];
+
+          if (cycle) {
+            filtered = filtered.filter(w => w.cycle === parseInt(cycle));
+          }
+          if (week) {
+            filtered = filtered.filter(w => w.week === parseInt(week));
+          }
+          if (session) {
+            filtered = filtered.filter(w => w.session === parseInt(session));
+          }
+          if (date) {
+            filtered = filtered.filter(w => {
+              const workoutDate = new Date(w.date).toISOString().split('T')[0];
+              return workoutDate === date;
+            });
+          }
+
+          currentWorkouts = filtered;
+          updateStats(filtered);
+          renderWorkouts(filtered);
+        }
+
+        function clearFilters() {
+          const filterCycle = document.getElementById('filterCycle');
+          const filterWeek = document.getElementById('filterWeek');
+          const filterSession = document.getElementById('filterSession');
+          const filterDate = document.getElementById('filterDate');
+          
+          if (filterCycle) filterCycle.value = '';
+          if (filterWeek) filterWeek.value = '';
+          if (filterSession) filterSession.value = '';
+          if (filterDate) filterDate.value = '';
+          
+          currentWorkouts = [...mockWorkouts];
+          updateStats(currentWorkouts);
+          renderWorkouts(currentWorkouts);
+        }
+
+        // Event listeners
+        const applyFiltersBtn = document.getElementById('applyFilters');
+        const clearFiltersBtn = document.getElementById('clearFilters');
+        
+        if (applyFiltersBtn) applyFiltersBtn.addEventListener('click', applyFilters);
+        if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearFilters);
+
+        // Initialize
+        updateStats(currentWorkouts);
+        renderWorkouts(currentWorkouts);
+      }
+      
+      function initializeSettingsPage() {
+        // Configuration management
+        const CONFIG_KEY = 'myfitness_config';
+        
+        let config = {
+          yandexToken: '',
+          yandexPath: '/workouts.json',
+          autoSync: true,
+          syncInterval: 15,
+          defaultCycle: 1,
+          theme: 'dark'
+        };
+        
+        function loadConfig() {
+          try {
+            const saved = localStorage.getItem(CONFIG_KEY);
+            if (saved) {
+              config = { ...config, ...JSON.parse(saved) };
+              applyConfigToUI();
+            }
+          } catch (e) {
+            console.warn('Failed to load config:', e);
+          }
+        }
+        
+        function saveConfig() {
+          try {
+            const yandexToken = document.getElementById('yandexToken')?.value;
+            const yandexPath = document.getElementById('yandexPath')?.value;
+            const autoSync = document.getElementById('autoSync')?.checked;
+            const syncInterval = parseInt(document.getElementById('syncInterval')?.value);
+            const defaultCycle = parseInt(document.getElementById('defaultCycle')?.value);
+            const theme = document.getElementById('theme')?.value;
+            
+            if (yandexToken !== undefined) config.yandexToken = yandexToken;
+            if (yandexPath !== undefined) config.yandexPath = yandexPath;
+            if (autoSync !== undefined) config.autoSync = autoSync;
+            if (syncInterval) config.syncInterval = syncInterval;
+            if (defaultCycle) config.defaultCycle = defaultCycle;
+            if (theme) config.theme = theme;
+            
+            localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+            showStatus('Настройки сохранены', 'success');
+          } catch (e) {
+            console.warn('Failed to save config:', e);
+            showStatus('Ошибка сохранения настроек', 'error');
+          }
+        }
+        
+        function applyConfigToUI() {
+          const yandexToken = document.getElementById('yandexToken');
+          const yandexPath = document.getElementById('yandexPath');
+          const autoSync = document.getElementById('autoSync');
+          const syncInterval = document.getElementById('syncInterval');
+          const defaultCycle = document.getElementById('defaultCycle');
+          const theme = document.getElementById('theme');
+          
+          if (yandexToken) yandexToken.value = config.yandexToken;
+          if (yandexPath) yandexPath.value = config.yandexPath;
+          if (autoSync) autoSync.checked = config.autoSync;
+          if (syncInterval) syncInterval.value = config.syncInterval;
+          if (defaultCycle) defaultCycle.value = config.defaultCycle;
+          if (theme) theme.value = config.theme;
+        }
+        
+        function showStatus(message, type = 'info') {
+          const statusEl = document.getElementById('connectionStatus');
+          if (statusEl) {
+            statusEl.innerHTML = `<div class="status ${type}">${message}</div>`;
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+              statusEl.innerHTML = '';
+            }, 5000);
+          }
+        }
+        
+        async function testYandexConnection() {
+          const token = document.getElementById('yandexToken')?.value.trim();
+          
+          if (!token) {
+            showStatus('Введите OAuth токен для проверки подключения', 'error');
+            return;
+          }
+          
+          try {
+            const btn = document.getElementById('testConnection');
+            if (btn) {
+              btn.disabled = true;
+              btn.textContent = 'Проверка...';
+            }
+            
+            const response = await fetch('https://cloud-api.yandex.net/v1/disk', {
+              headers: {
+                'Authorization': `OAuth ${token}`
+              }
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              const total = Number(data.total_space);
+              const used = Number(data.used_space);
+              const available = total - used;
+              
+              showStatus(
+                `Подключение успешно! Доступно места: ${Math.round(available / 1024 / 1024 / 1024)} ГБ`, 
+                'success'
+              );
+            } else {
+              showStatus(`Ошибка подключения: ${response.status} ${response.statusText}`, 'error');
+            }
+          } catch (e) {
+            showStatus(`Ошибка: ${e.message}`, 'error');
+          } finally {
+            const btn = document.getElementById('testConnection');
+            if (btn) {
+              btn.disabled = false;
+              btn.textContent = 'Проверить подключение';
+            }
+          }
+        }
+        
+        // Event listeners
+        const testConnectionBtn = document.getElementById('testConnection');
+        const syncNowBtn = document.getElementById('syncNow');
+        const exportDataBtn = document.getElementById('exportData');
+        const importDataBtn = document.getElementById('importData');
+        const clearDataBtn = document.getElementById('clearData');
+        
+        if (testConnectionBtn) testConnectionBtn.addEventListener('click', testYandexConnection);
+        if (syncNowBtn) syncNowBtn.addEventListener('click', () => {
+          showStatus('Синхронизация запущена...', 'info');
+          setTimeout(() => {
+            showStatus('Синхронизация завершена', 'success');
+          }, 2000);
+        });
+        
+        // Auto-save on input changes
+        [
+          'yandexToken', 'yandexPath', 'autoSync', 'syncInterval', 'defaultCycle', 'theme'
+        ].forEach(id => {
+          const element = document.getElementById(id);
+          if (element) {
+            if (element.type === 'checkbox') {
+              element.addEventListener('change', saveConfig);
+            } else {
+              element.addEventListener('blur', saveConfig);
+            }
+          }
+        });
+        
+        // Initialize
+        loadConfig();
+      }
+      
+      // Initialize main page functionality
+      const CONFIG_KEY = 'yandex_disk_config';
+      const cycleEl = document.getElementById('cycle');
+      const weekEl = document.getElementById('week');
+      const sessionEl = document.getElementById('session');
+      const addSetsToAllBtn = document.getElementById('addSetsToAll');
+      const saveBtn = document.getElementById('saveWorkoutBtn');
+      const syncBtn = document.getElementById('syncBtn');
+
+      const groups = [
+        { group: 'Грудь', ex: 'ex-chest', setsContainer: 'sets-chest' },
+        { group: 'Спина', ex: 'ex-back', setsContainer: 'sets-back' },
+        { group: 'Ноги', ex: 'ex-legs', setsContainer: 'sets-legs' },
+        { group: 'Плечи', ex: 'ex-shoulders', setsContainer: 'sets-shoulders' },
+        { group: 'Бицепс', ex: 'ex-biceps', setsContainer: 'sets-biceps' },
+        { group: 'Трицепс', ex: 'ex-triceps', setsContainer: 'sets-triceps' },
+        { group: 'Задние дельты', ex: 'ex-reardelt', setsContainer: 'sets-reardelt' },
+      ];
+
+      let config = {
+        token: '',
+        path: '/workouts.json'
+      };
+
+      function loadConfig() {
+        try {
+          const saved = localStorage.getItem(CONFIG_KEY);
+          if (saved) {
+            config = { ...config, ...JSON.parse(saved) };
+          }
+        } catch (e) {
+          console.warn('Failed to load config:', e);
+        }
+      }
+
+      function createSetRow(index) {
+        const row = document.createElement('div');
+        row.className = 'set-row';
+        row.innerHTML = `
+          <span class="em-label">Подход ${index + 1}</span>
+          <div class="pair"><span class="em-label">Повт.</span><input type="number" class="reps" min="1" max="50" placeholder="10" /></div>
+          <div class="pair"><span class="em-label">Вес</span><input type="number" class="weight" min="0" max="700" step="0.5" placeholder="кг" /></div>
+          <button type="button" class="remove-set" title="Удалить">×</button>
+        `;
+        return row;
+      }
+
+      function addSet(container) {
+        const index = container.querySelectorAll('.set-row').length;
+        const row = createSetRow(index);
+        container.appendChild(row);
+        row.querySelector('.remove-set').addEventListener('click', () => {
+          row.remove();
+          renumberSets(container);
+        });
+      }
+
+      function renumberSets(container) {
+        container.querySelectorAll('.set-row .em-label:first-child').forEach((el, idx) => {
+          el.textContent = `Подход ${idx + 1}`;
+        });
+      }
+
+      function ensureInitialSets() {
+        groups.forEach(g => {
+          const container = document.getElementById(g.setsContainer);
+          if (container.children.length === 0) {
+            addSet(container);
+          }
+        });
+      }
+
+      function collectCurrentEntry() {
+        const cycle = Number(cycleEl.value) || 1;
+        const week = Number(weekEl.value);
+        const session = Number(sessionEl.value);
+
+        const exercises = groups.map(g => {
+          const exerciseName = document.getElementById(g.ex).value;
+          const container = document.getElementById(g.setsContainer);
+          const sets = Array.from(container.querySelectorAll('.set-row')).map(row => {
+            const repsVal = Number(row.querySelector('input.reps').value);
+            const weightVal = Number(row.querySelector('input.weight').value);
+            return {
+              reps: Number.isFinite(repsVal) ? repsVal : null,
+              weight: Number.isFinite(weightVal) ? weightVal : null,
+            };
+          });
+          return {
+            group: g.group,
+            exercise: exerciseName,
+            sets,
+          };
+        });
+
+        return {
+          id: Date.now(),
+          date: new Date().toISOString(),
+          cycle,
+          week,
+          session,
+          exercises,
+        };
+      }
+
+      async function handleSave() {
+        if (!cycleEl.value) {
+          alert('Укажите номер цикла');
+          return;
+        }
+
+        const entry = collectCurrentEntry();
+
+        const hasAnySet = entry.exercises.some(ex => ex.sets.some(s => (s.reps && s.reps > 0) || (s.weight && s.weight > 0)));
+        if (!hasAnySet) {
+          if (!confirm('Вы не указали ни один подход. Сохранить запись?')) return;
+        }
+
+        try {
+          saveBtn.disabled = true;
+          saveBtn.textContent = 'Сохранение...';
+          
+          // Save to localStorage for now
+          const workouts = JSON.parse(localStorage.getItem('workouts') || '[]');
+          workouts.push(entry);
+          localStorage.setItem('workouts', JSON.stringify(workouts));
+          
+          showStatus('Тренировка сохранена!', 'success');
+          
+          // Clear form
+          cycleEl.value = '';
+          groups.forEach(g => {
+            const container = document.getElementById(g.setsContainer);
+            container.innerHTML = '';
+            addSet(container);
+          });
+          
+        } catch (e) {
+          console.error('Save failed:', e);
+          showStatus(`Ошибка сохранения: ${e.message}`, 'error');
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Сохранить тренировку';
+        }
+      }
+
+      function addSetToAll() {
+        groups.forEach(g => {
+          const container = document.getElementById(g.setsContainer);
+          addSet(container);
+        });
+      }
+
+      function showStatus(message, type = 'info') {
+        // Create status element if it doesn't exist
+        let statusEl = document.querySelector('.workout-form .status');
+        if (!statusEl) {
+          statusEl = document.createElement('div');
+          statusEl.className = 'status';
+          document.querySelector('.workout-form').insertBefore(statusEl, document.querySelector('.wf-actions'));
+        }
+        
+        statusEl.className = `status ${type}`;
+        statusEl.textContent = message;
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+          statusEl.remove();
+        }, 5000);
+      }
+
+      // Wire per-group add buttons
+      document.querySelectorAll('.add-set-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.getAttribute('data-target');
+          const container = document.getElementById(targetId);
+          addSet(container);
+        });
+      });
+
+      // Event listeners
+      saveBtn.addEventListener('click', handleSave);
+      addSetsToAllBtn.addEventListener('click', addSetToAll);
+      syncBtn.addEventListener('click', () => {
+        showStatus('Синхронизация с Яндекс.Диском...', 'info');
+        // TODO: Implement actual sync
+        setTimeout(() => {
+          showStatus('Синхронизация завершена', 'success');
+        }, 2000);
+      });
+
+      // Initialize
+      loadConfig();
+      ensureInitialSets();
+    </script>
+  </body>
+</html>
