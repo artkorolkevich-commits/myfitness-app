@@ -547,6 +547,25 @@
     right: 8px;                       /* больше не вылезает за пределы */
   }
 }
+      /* Multi-exercise UI */
+.group-exercises { display: grid; gap: 12px; }
+.exercise-block {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(148,163,184,0.2);
+  border-radius: 10px;
+  padding: 12px;
+}
+.exercise-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+}
+.exercise-select { flex: 1 1 auto; min-width: 0; }
+.remove-exercise {
+  width: 32px; height: 32px; border-radius: 6px;
+  border: 1px solid rgba(239,68,68,0.4);
+  background: rgba(239,68,68,0.08); color: var(--danger); cursor: pointer;
+}
+.wf-row .group-exercises { grid-column: 2 / 4; }
+.wf-row .group-actions { grid-column: 3 / 4; display: flex; justify-content: flex-end; }
     </style>
     <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
@@ -1300,15 +1319,207 @@
       const saveBtn = document.getElementById('saveWorkoutBtn');
       const syncBtn = document.getElementById('syncBtn');
 
-      const groups = [
-        { group: 'Грудь', ex: 'ex-chest', setsContainer: 'sets-chest' },
-        { group: 'Спина', ex: 'ex-back', setsContainer: 'sets-back' },
-        { group: 'Ноги', ex: 'ex-legs', setsContainer: 'sets-legs' },
-        { group: 'Плечи', ex: 'ex-shoulders', setsContainer: 'sets-shoulders' },
-        { group: 'Бицепс', ex: 'ex-biceps', setsContainer: 'sets-biceps' },
-        { group: 'Трицепс', ex: 'ex-triceps', setsContainer: 'sets-triceps' },
-        { group: 'Задние дельты', ex: 'ex-reardelt', setsContainer: 'sets-reardelt' },
-      ];
+      // Группы мышц (без "Задние дельты")
+const groups = [
+  { id: 'chest',     name: 'Грудь',     ex: 'ex-chest',     setsContainer: 'sets-chest' },
+  { id: 'back',      name: 'Спина',     ex: 'ex-back',      setsContainer: 'sets-back' },
+  { id: 'legs',      name: 'Ноги',      ex: 'ex-legs',      setsContainer: 'sets-legs' },
+  { id: 'shoulders', name: 'Плечи',     ex: 'ex-shoulders', setsContainer: 'sets-shoulders' },
+  { id: 'biceps',    name: 'Бицепс',    ex: 'ex-biceps',    setsContainer: 'sets-biceps' },
+  { id: 'triceps',   name: 'Трицепс',   ex: 'ex-triceps',   setsContainer: 'sets-triceps' }
+];
+
+// Удаляем секцию "Задние дельты" из DOM, если есть
+(function removeRearDeltSection() {
+  const sel = document.getElementById('ex-reardelt');
+  if (sel) sel.closest('.wf-row')?.remove();
+})();
+
+// Добавляем "разводка рук в тренажере-бабочке" к плечам
+(function ensureShouldersOption() {
+  const sel = document.getElementById('ex-shoulders');
+  if (!sel) return;
+  const exists = Array.from(sel.options).some(o =>
+    o.textContent.trim().toLowerCase() === 'разводка рук в тренажере-бабочке'
+  );
+  if (!exists) {
+    const opt = document.createElement('option');
+    opt.textContent = 'разводка рук в тренажере-бабочке';
+    sel.appendChild(opt);
+  }
+})();
+
+// Поддержка "другое упражнение"
+function attachCustomExerciseHandler(selectEl) {
+  if (!selectEl) return;
+  // добавляем пункт "Другое…"
+  if (!Array.from(selectEl.options).some(o => o.value === '__custom__')) {
+    const custom = document.createElement('option');
+    custom.value = '__custom__';
+    custom.textContent = '— Другое… —';
+    selectEl.appendChild(custom);
+  }
+  selectEl.addEventListener('change', () => {
+    if (selectEl.value === '__custom__') {
+      const name = prompt('Введите название упражнения');
+      if (name && name.trim()) {
+        const val = name.trim();
+        const opt = document.createElement('option');
+        opt.value = val; opt.textContent = val;
+        selectEl.add(opt);
+        selectEl.value = val;
+      } else {
+        // откат к первому пункту
+        selectEl.selectedIndex = 0;
+      }
+    }
+  });
+}
+
+// Создание блока упражнения внутри группы
+function createExerciseBlock(groupId, optionsSourceSelect) {
+  const container = document.getElementById(`group-${groupId}-exercises`);
+  const index = container.querySelectorAll('.exercise-block').length;
+
+  const block = document.createElement('div');
+  block.className = 'exercise-block';
+
+  // селект с упражнениями (копируем из исходного селекта)
+  const header = document.createElement('div');
+  header.className = 'exercise-header';
+
+  const select = document.createElement('select');
+  select.className = 'exercise-select';
+  Array.from(optionsSourceSelect.options).forEach(o => {
+    const opt = document.createElement('option');
+    opt.text = o.text; opt.value = o.value || o.text;
+    select.add(opt);
+  });
+  header.appendChild(select);
+
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'remove-exercise';
+  removeBtn.textContent = '×';
+  removeBtn.title = 'Удалить упражнение';
+  removeBtn.addEventListener('click', () => block.remove());
+  header.appendChild(removeBtn);
+
+  block.appendChild(header);
+
+   const sets = document.createElement('div');
+  sets.className = 'sets';
+  sets.id = `sets-${groupId}-${index}`;
+  block.appendChild(sets);
+
+  const addSetBtn = document.createElement('button');
+  addSetBtn.type = 'button';
+  addSetBtn.className = 'btn-secondary add-set-btn';
+  addSetBtn.setAttribute('data-target', sets.id);
+  addSetBtn.textContent = 'Добавить подход';
+  addSetBtn.addEventListener('click', () => addSet(sets));
+  block.appendChild(addSetBtn);
+
+  container.appendChild(block);
+
+  attachCustomExerciseHandler(select);
+  addSet(sets); // начальный подход
+}
+
+// Трансформация каждой группы в "список упражнений"
+function transformGroupsToMultiExercise() {
+  groups.forEach(g => {
+    const originalSelect = document.getElementById(g.ex);
+    const originalSets = document.getElementById(g.setsContainer);
+    const originalAddSetBtn = document.querySelector(`.add-set-btn[data-target="${g.setsContainer}"]`);
+    if (!originalSelect || !originalSets || !originalAddSetBtn) return;
+
+    const row = originalSelect.closest('.wf-row');
+    // контейнер для упражнений
+    const list = document.createElement('div');
+    list.className = 'group-exercises';
+    list.id = `group-${g.id}-exercises`;
+
+    // первый блок формируем из существующих элементов, чтобы ничего не потерять
+    const firstBlock = document.createElement('div');
+    firstBlock.className = 'exercise-block';
+
+    const header = document.createElement('div');
+    header.className = 'exercise-header';
+    originalSelect.classList.add('exercise-select');
+    header.appendChild(originalSelect);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'remove-exercise';
+    removeBtn.textContent = '×';
+    removeBtn.title = 'Удалить упражнение';
+    removeBtn.addEventListener('click', () => firstBlock.remove());
+    header.appendChild(removeBtn);
+
+    firstBlock.appendChild(header);
+
+    originalSets.id = `sets-${g.id}-0`;
+    firstBlock.appendChild(originalSets);
+
+    originalAddSetBtn.setAttribute('data-target', originalSets.id);
+    firstBlock.appendChild(originalAddSetBtn);
+
+    list.appendChild(firstBlock);
+    attachCustomExerciseHandler(originalSelect);
+
+    // Кнопка "Добавить упражнение"
+    const actions = document.createElement('div');
+    actions.className = 'group-actions';
+    const addExerciseBtn = document.createElement('button');
+    addExerciseBtn.type = 'button';
+    addExerciseBtn.className = 'btn-secondary';
+    addExerciseBtn.textContent = 'Добавить упражнение';
+    addExerciseBtn.addEventListener('click', () => createExerciseBlock(g.id, originalSelect));
+    actions.appendChild(addExerciseBtn);
+
+    // Вставляем и очищаем старые элементы
+    row.appendChild(list);
+    row.appendChild(actions);
+  });
+}
+
+// Добавить по подходу во все упражнения во всех группах
+function addSetToAll() {
+  document.querySelectorAll('.exercise-block .sets').forEach(container => addSet(container));
+}
+
+// Сбор данных тренировки: учитываем все упражнения в группе
+function collectCurrentEntry() {
+  const cycle = Number(document.getElementById('cycle').value) || 1;
+  const week = Number(document.getElementById('week').value);
+  const session = Number(document.getElementById('session').value);
+
+  const exercises = [];
+  groups.forEach(g => {
+    const list = document.getElementById(`group-${g.id}-exercises`);
+    if (!list) return;
+    list.querySelectorAll('.exercise-block').forEach(block => {
+      const name = block.querySelector('.exercise-select')?.value || '';
+      const sets = Array.from(block.querySelectorAll('.set-row')).map(row => {
+        const repsVal = Number(row.querySelector('input.reps').value);
+        const weightVal = Number(row.querySelector('input.weight').value);
+        return {
+          reps: Number.isFinite(repsVal) ? repsVal : null,
+          weight: Number.isFinite(weightVal) ? weightVal : null
+        };
+      });
+      exercises.push({ group: g.name, exercise: name, sets });
+    });
+  });
+
+  return {
+    id: Date.now(),
+    date: new Date().toISOString(),
+    cycle, week, session,
+    exercises
+  };
+}
 
       let config = {
         token: '',
@@ -1477,22 +1688,19 @@
       });
 
       // Event listeners
-      saveBtn.addEventListener('click', handleSave);
-      addSetsToAllBtn.addEventListener('click', addSetToAll);
-      syncBtn.addEventListener('click', () => {
-        showStatus('Синхронизация с Яндекс.Диском...', 'info');
-        // TODO: Implement actual sync
-        setTimeout(() => {
-          showStatus('Синхронизация завершена', 'success');
-        }, 2000);
-      });
+saveBtn.addEventListener('click', handleSave);
+addSetsToAllBtn.addEventListener('click', addSetToAll);
+syncBtn.addEventListener('click', () => {
+  showStatus('Синхронизация с Яндекс.Диском...', 'info');
+  setTimeout(() => showStatus('Синхронизация завершена', 'success'), 2000);
+});
 
-      // Initialize
-      loadConfig();
-      ensureInitialSets();
-      
-      // Initialize welcome page
-      loadWelcomePage();
+// Initialize
+loadConfig();
+transformGroupsToMultiExercise();
+
+// Initialize welcome page
+loadWelcomePage();
       
       // Test data functions
       function loadTestData() {
