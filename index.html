@@ -434,6 +434,65 @@
       .btn-primary:active {
         transform: translateY(0);
       }
+     /* Workout set row: responsive layout fix */
+.sets { display: grid; gap: 8px; }
+
+.set-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto; /* label, reps, weight, remove */
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(148,163,184,0.2);
+  border-radius: 8px;
+}
+
+.set-row .em-label {
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.set-row .pair {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.set-row .pair input {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+}
+
+.set-row .remove-set {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid rgba(239,68,68,0.4);
+  background: rgba(239,68,68,0.08);
+  color: var(--danger);
+  cursor: pointer;
+}
+
+/* Mobile: stack fields, keep remove button in top-right inside row */
+@media (max-width: 480px) {
+  .set-row {
+    grid-template-columns: 1fr auto; /* text + remove */
+    grid-auto-rows: auto;
+  }
+  .set-row .em-label { grid-column: 1 / 2; }
+  .set-row .pair { grid-column: 1 / -1; } /* reps and weight take full width */
+  .set-row .remove-set {
+    grid-column: 2 / 3;
+    align-self: start;
+  }
+} 
     </style>
     <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
