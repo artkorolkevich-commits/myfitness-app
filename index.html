@@ -1466,13 +1466,6 @@ header.appendChild(addSetIcon);
   sets.id = `sets-${groupId}-${index}`;
   block.appendChild(sets);
 
-  const addSetBtn = document.createElement('button');
-  addSetBtn.type = 'button';
-  addSetBtn.className = 'btn-secondary add-set-btn';
-  addSetBtn.setAttribute('data-target', sets.id);
-  addSetBtn.textContent = 'Добавить подход';
-  addSetBtn.addEventListener('click', () => addSet(sets));
-  block.appendChild(addSetBtn);
 
   container.appendChild(block);
 
@@ -1523,9 +1516,6 @@ header.appendChild(addSetIcon0);
 
     originalSets.id = `sets-${g.id}-0`;
     firstBlock.appendChild(originalSets);
-
-    originalAddSetBtn.setAttribute('data-target', originalSets.id);
-    firstBlock.appendChild(originalAddSetBtn);
 
     list.appendChild(firstBlock);
     attachCustomExerciseHandler(originalSelect);
