@@ -1478,7 +1478,6 @@ function transformGroupsToMultiExercise() {
   groups.forEach(g => {
     const originalSelect = document.getElementById(g.ex);
     const originalSets = document.getElementById(g.setsContainer);
-    const originalAddSetBtn = document.querySelector(`.add-set-btn[data-target="${g.setsContainer}"]`);
     if (!originalSelect || !originalSets || !originalAddSetBtn) return;
 
     const row = originalSelect.closest('.wf-row');
@@ -1750,6 +1749,7 @@ syncBtn.addEventListener('click', () => {
 // Initialize
 loadConfig();
 transformGroupsToMultiExercise();
+document.querySelectorAll('.add-set-btn').forEach(btn => btn.remove()); // убираем старые кнопки
 
 // Initialize welcome page
 loadWelcomePage();
