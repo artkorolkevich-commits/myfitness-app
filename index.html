@@ -914,8 +914,8 @@
   else if (pageName === 'settings') loadSettingsPage();
 
   const pageTitles = { welcome: 'Главная', main: 'Новая тренировка', history: 'История тренировок', settings: 'Настройки' };
-  const pageTitle = document.querySelector('.content-header h2');
-  if (pageTitle && pageTitles[pageName]) pageTitle.textContent = pageTitles[pageName];
+  const scopedHeader = targetPage ? targetPage.querySelector('.content-header h2') : null;
+  if (scopedHeader && pageTitles[pageName]) scopedHeader.textContent = pageTitles[pageName];
 }      
       async function loadWelcomePage() {
         // Load statistics from localStorage
@@ -975,7 +975,7 @@
         `;
         
         try {
-          const response = await fetch('./history.html');
+          const response = await fetch(`./history.html?v=${Date.now()}`);
           const html = await response.text();
           
           // Extract body content
@@ -1008,7 +1008,7 @@
         `;
         
         try {
-          const response = await fetch('./settings.html');
+          const response = await fetch(`./settings.html?v=${Date.now()}`);
           const html = await response.text();
           
           // Extract body content
