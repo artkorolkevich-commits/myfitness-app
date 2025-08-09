@@ -1346,7 +1346,7 @@
       }
       
       // Initialize main page functionality
-      const CONFIG_KEY = 'yandex_disk_config';
+      const CONFIG_KEY = 'myfitness_config';
       const cycleEl = document.getElementById('cycle');
       const weekEl = document.getElementById('week');
       const sessionEl = document.getElementById('session');
@@ -1561,19 +1561,75 @@ function collectCurrentEntry() {
   };
 }
 
-      let config = {
-        token: '',
-        path: '/workouts.json'
+      // App config (synced with settings page)
+      let appConfig = {
+        yandexToken: '',
+        yandexPath: '/workouts.json',
+        autoSync: false,
+        syncInterval: 15
       };
 
       function loadConfig() {
         try {
           const saved = localStorage.getItem(CONFIG_KEY);
           if (saved) {
-            config = { ...config, ...JSON.parse(saved) };
+            appConfig = { ...appConfig, ...JSON.parse(saved) };
           }
         } catch (e) {
           console.warn('Failed to load config:', e);
+        }
+      }
+
+      function getWorkouts() {
+        try { return JSON.parse(localStorage.getItem('workouts') || '[]'); }
+        catch { return []; }
+      }
+
+      async function syncWorkoutsToYandex(optionalWorkouts) {
+        const token = appConfig.yandexToken?.trim();
+        const path = appConfig.yandexPath?.trim() || '/workouts.json';
+        if (!token || !path) {
+          showStatus('Укажите OAuth токен и путь в настройках', 'error');
+          return false;
+        }
+        try {
+          const workouts = optionalWorkouts ?? getWorkouts();
+          const uploadLinkResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/upload?path=${encodeURIComponent(path)}&overwrite=true`, {
+            headers: { 'Authorization': `OAuth ${token}` }
+          });
+          if (!uploadLinkResp.ok) {
+            const msg = `Ошибка получения upload URL: ${uploadLinkResp.status}`;
+            showStatus(msg, 'error');
+            return false;
+          }
+          const { href } = await uploadLinkResp.json();
+          if (!href) { showStatus('Не получена ссылка загрузки', 'error'); return false; }
+
+          showStatus('Синхронизация с Яндекс.Диском...', 'info');
+          const putResp = await fetch(href, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(workouts, null, 2)
+          });
+          if (!putResp.ok) {
+            showStatus(`Ошибка записи: ${putResp.status}`, 'error');
+            return false;
+          }
+          showStatus('Синхронизация завершена', 'success');
+          return true;
+        } catch (e) {
+          showStatus(`Ошибка синхронизации: ${e.message}`, 'error');
+          return false;
+        }
+      }
+
+      let autoSyncTimer = null;
+      function startAutoSyncTimer() {
+        if (autoSyncTimer) { clearInterval(autoSyncTimer); autoSyncTimer = null; }
+        if (appConfig.autoSync && appConfig.syncInterval > 0) {
+          autoSyncTimer = setInterval(() => {
+            syncWorkoutsToYandex().catch(() => {});
+          }, Math.max(1, appConfig.syncInterval) * 60 * 1000);
         }
       }
 
@@ -1638,6 +1694,11 @@ function collectCurrentEntry() {
           
           showStatus('Тренировка сохранена!', 'success');
           
+          // Auto-sync to Yandex Disk if enabled
+          if (appConfig.autoSync) {
+            await syncWorkoutsToYandex(workouts);
+          }
+
           // Update welcome page statistics if it's visible
           if (document.getElementById('welcome-page').style.display !== 'none') {
             loadWelcomePage();
@@ -1693,13 +1754,19 @@ function collectCurrentEntry() {
       // Event listeners
 saveBtn.addEventListener('click', handleSave);
 addSetsToAllBtn.addEventListener('click', addSetToAll);
-syncBtn.addEventListener('click', () => {
-  showStatus('Синхронизация с Яндекс.Диском...', 'info');
-  setTimeout(() => showStatus('Синхронизация завершена', 'success'), 2000);
-});
+syncBtn.addEventListener('click', () => { syncWorkoutsToYandex().catch(() => {}); });
 
 // Initialize
 loadConfig();
+startAutoSyncTimer();
+
+// React to settings updates from Settings page (if open in another tab)
+window.addEventListener('storage', (e) => {
+  if (e.key === CONFIG_KEY) {
+    loadConfig();
+    startAutoSyncTimer();
+  }
+});
 transformGroupsToMultiExercise();
 document.querySelectorAll('.add-set-btn').forEach(btn => btn.remove()); // убираем старые кнопки
 ensureInitialSetsMulti();
