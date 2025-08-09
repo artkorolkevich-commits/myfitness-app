@@ -1033,28 +1033,16 @@
       
       function initializeHistoryPage() {
         // Initialize history page functionality
-        const mockWorkouts = [
-          {
-            id: 1,
-            date: '2024-01-15T10:30:00Z',
-            cycle: 1,
-            week: 1,
-            session: 1,
-            exercises: [
-              {
-                group: 'Грудь',
-                exercise: 'Жим лежа',
-                sets: [
-                  { reps: 10, weight: 80 },
-                  { reps: 8, weight: 85 },
-                  { reps: 6, weight: 90 }
-                ]
-              }
-            ]
+        const getStoredWorkouts = () => {
+          try {
+            return JSON.parse(localStorage.getItem('workouts') || '[]');
+          } catch (e) {
+            return [];
           }
-        ];
-        
-        let currentWorkouts = [...mockWorkouts];
+        };
+
+        const allWorkouts = getStoredWorkouts();
+        let currentWorkouts = [...allWorkouts];
         
         function updateStats(workouts) {
           const totalWorkouts = workouts.length;
@@ -1151,7 +1139,7 @@
           const session = document.getElementById('filterSession')?.value;
           const date = document.getElementById('filterDate')?.value;
 
-          let filtered = [...mockWorkouts];
+          let filtered = [...allWorkouts];
 
           if (cycle) {
             filtered = filtered.filter(w => w.cycle === parseInt(cycle));
@@ -1185,7 +1173,7 @@
           if (filterSession) filterSession.value = '';
           if (filterDate) filterDate.value = '';
           
-          currentWorkouts = [...mockWorkouts];
+          currentWorkouts = [...allWorkouts];
           updateStats(currentWorkouts);
           renderWorkouts(currentWorkouts);
         }
@@ -1479,7 +1467,7 @@ function transformGroupsToMultiExercise() {
   groups.forEach(g => {
     const originalSelect = document.getElementById(g.ex);
     const originalSets = document.getElementById(g.setsContainer);
-    if (!originalSelect || !originalSets || !originalAddSetBtn) return;
+    if (!originalSelect || !originalSets) return;
 
     const row = originalSelect.closest('.wf-row');
     // контейнер для упражнений
@@ -1617,47 +1605,14 @@ function collectCurrentEntry() {
         });
       }
 
-      function ensureInitialSets() {
-        groups.forEach(g => {
-          const container = document.getElementById(g.setsContainer);
-          if (container.children.length === 0) {
-            addSet(container);
-          }
+      // Ensure at least one set exists in each exercise block (after transform)
+      function ensureInitialSetsMulti() {
+        document.querySelectorAll('.exercise-block .sets').forEach(container => {
+          if (!container.querySelector('.set-row')) addSet(container);
         });
       }
 
-      function collectCurrentEntry() {
-        const cycle = Number(cycleEl.value) || 1;
-        const week = Number(weekEl.value);
-        const session = Number(sessionEl.value);
-
-        const exercises = groups.map(g => {
-          const exerciseName = document.getElementById(g.ex).value;
-          const container = document.getElementById(g.setsContainer);
-          const sets = Array.from(container.querySelectorAll('.set-row')).map(row => {
-            const repsVal = Number(row.querySelector('input.reps').value);
-            const weightVal = Number(row.querySelector('input.weight').value);
-            return {
-              reps: Number.isFinite(repsVal) ? repsVal : null,
-              weight: Number.isFinite(weightVal) ? weightVal : null,
-            };
-          });
-          return {
-            group: g.group,
-            exercise: exerciseName,
-            sets,
-          };
-        });
-
-        return {
-          id: Date.now(),
-          date: new Date().toISOString(),
-          cycle,
-          week,
-          session,
-          exercises,
-        };
-      }
+      
 
       async function handleSave() {
         if (!cycleEl.value) {
@@ -1690,8 +1645,7 @@ function collectCurrentEntry() {
           
           // Clear form
           cycleEl.value = '';
-          groups.forEach(g => {
-            const container = document.getElementById(g.setsContainer);
+          document.querySelectorAll('.exercise-block .sets').forEach(container => {
             container.innerHTML = '';
             addSet(container);
           });
@@ -1706,10 +1660,7 @@ function collectCurrentEntry() {
       }
 
       function addSetToAll() {
-        groups.forEach(g => {
-          const container = document.getElementById(g.setsContainer);
-          addSet(container);
-        });
+        document.querySelectorAll('.exercise-block .sets').forEach(container => addSet(container));
       }
 
       function showStatus(message, type = 'info') {
@@ -1751,6 +1702,7 @@ syncBtn.addEventListener('click', () => {
 loadConfig();
 transformGroupsToMultiExercise();
 document.querySelectorAll('.add-set-btn').forEach(btn => btn.remove()); // убираем старые кнопки
+ensureInitialSetsMulti();
 
 // Initialize welcome page
 loadWelcomePage();
