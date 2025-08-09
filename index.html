@@ -556,9 +556,10 @@
   padding: 12px;
 }
 .exercise-header {
-  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+  display: grid; align-items: center; gap: 8px; margin-bottom: 10px;
+  grid-template-columns: max-content auto auto; /* select | add | remove */
 }
-.exercise-select { flex: 1 1 auto; min-width: 0; }
+.exercise-select { width: 240px; min-width: 0; }
 .remove-exercise {
   width: 32px; height: 32px; border-radius: 6px;
   border: 1px solid rgba(239,68,68,0.4);
@@ -570,11 +571,11 @@
 .exercise-block { position: relative; }
 .exercise-header {
   display: grid;
-  grid-template-columns: 1fr auto;  /* select | remove */
+  grid-template-columns: max-content auto auto;  /* select | add | remove */
   gap: 8px;
   align-items: center;
 }
-.exercise-select { width: 100%; min-width: 0; }
+.exercise-select { width: 240px; min-width: 0; }
 .remove-exercise {
   position: static;                  /* чтобы не “выползал” за пределы */
   width: 28px; height: 28px;
