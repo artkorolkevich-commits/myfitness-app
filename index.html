@@ -1554,8 +1554,10 @@ function collectCurrentEntry() {
   });
 
   return {
-    id: Date.now(),
+    id: generateUUID(),
     date: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    deviceId: getDeviceId(),
     cycle, week, session,
     exercises
   };
@@ -1580,9 +1582,30 @@ function collectCurrentEntry() {
         }
       }
 
+      // Simple UUID v4 generator
+      function generateUUID() {
+        if (crypto && crypto.randomUUID) return crypto.randomUUID();
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+          const r = Math.random() * 16 | 0; const v = c === 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+      }
+
+      // Persistent device id
+      function getDeviceId() {
+        const key = 'myfitness_device_id';
+        let id = localStorage.getItem(key);
+        if (!id) { id = generateUUID(); localStorage.setItem(key, id); }
+        return id;
+      }
+
       function getWorkouts() {
         try { return JSON.parse(localStorage.getItem('workouts') || '[]'); }
         catch { return []; }
+      }
+
+      function setWorkouts(workouts) {
+        localStorage.setItem('workouts', JSON.stringify(workouts));
       }
 
       async function syncWorkoutsToYandex(optionalWorkouts) {
@@ -1593,7 +1616,25 @@ function collectCurrentEntry() {
           return false;
         }
         try {
-          const workouts = optionalWorkouts ?? getWorkouts();
+          // 1) Download remote, merge, then upload
+          const remoteResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/download?path=${encodeURIComponent(path)}`, {
+            headers: { 'Authorization': `OAuth ${token}` }
+          });
+          let remoteWorkouts = [];
+          if (remoteResp.ok) {
+            const { href: downloadHref } = await remoteResp.json();
+            if (downloadHref) {
+              const fileResp = await fetch(downloadHref);
+              if (fileResp.ok) {
+                try { remoteWorkouts = await fileResp.json(); } catch { remoteWorkouts = []; }
+              }
+            }
+          }
+
+          const localWorkouts = optionalWorkouts ?? getWorkouts();
+          const merged = mergeWorkouts(remoteWorkouts, localWorkouts);
+          setWorkouts(merged);
+
           const uploadLinkResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/upload?path=${encodeURIComponent(path)}&overwrite=true`, {
             headers: { 'Authorization': `OAuth ${token}` }
           });
@@ -1609,7 +1650,7 @@ function collectCurrentEntry() {
           const putResp = await fetch(href, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(workouts, null, 2)
+            body: JSON.stringify(merged, null, 2)
           });
           if (!putResp.ok) {
             showStatus(`Ошибка записи: ${putResp.status}`, 'error');
@@ -1621,6 +1662,21 @@ function collectCurrentEntry() {
           showStatus(`Ошибка синхронизации: ${e.message}`, 'error');
           return false;
         }
+      }
+
+      function mergeWorkouts(remote, local) {
+        const byId = new Map();
+        [...remote, ...local].forEach(item => {
+          if (!item || !item.id) return;
+          const prev = byId.get(item.id);
+          if (!prev) { byId.set(item.id, item); return; }
+          const prevTs = Date.parse(prev.updatedAt || prev.date || 0);
+          const curTs = Date.parse(item.updatedAt || item.date || 0);
+          if (curTs >= prevTs) byId.set(item.id, item);
+        });
+        const merged = Array.from(byId.values());
+        merged.sort((a,b) => Date.parse(a.date||0) - Date.parse(b.date||0));
+        return merged;
       }
 
       let autoSyncTimer = null;
@@ -1687,16 +1743,16 @@ function collectCurrentEntry() {
           saveBtn.disabled = true;
           saveBtn.textContent = 'Сохранение...';
           
-          // Save to localStorage for now
-          const workouts = JSON.parse(localStorage.getItem('workouts') || '[]');
-          workouts.push(entry);
-          localStorage.setItem('workouts', JSON.stringify(workouts));
+          // Save locally first
+          const current = getWorkouts();
+          current.push(entry);
+          setWorkouts(current);
           
           showStatus('Тренировка сохранена!', 'success');
           
           // Auto-sync to Yandex Disk if enabled
           if (appConfig.autoSync) {
-            await syncWorkoutsToYandex(workouts);
+            await syncWorkoutsToYandex(current);
           }
 
           // Update welcome page statistics if it's visible
@@ -1759,6 +1815,13 @@ syncBtn.addEventListener('click', () => { syncWorkoutsToYandex().catch(() => {})
 // Initialize
 loadConfig();
 startAutoSyncTimer();
+
+// Pull from Yandex on startup to merge latest remote with local
+(async function initialPull(){
+  if (appConfig.yandexToken && appConfig.yandexPath) {
+    await syncWorkoutsToYandex(); // performs download->merge->upload
+  }
+})();
 
 // React to settings updates from Settings page (if open in another tab)
 window.addEventListener('storage', (e) => {
