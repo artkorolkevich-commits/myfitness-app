@@ -1804,14 +1804,19 @@ function collectCurrentEntry() {
       
 
       async function handleSave() {
+        console.log('handleSave called');
+        
         if (!cycleEl.value) {
           alert('Укажите номер цикла');
           return;
         }
 
         const entry = collectCurrentEntry();
+        console.log('Collected entry:', entry);
 
         const hasAnySet = entry.exercises.some(ex => ex.sets.some(s => (s.reps && s.reps > 0) || (s.weight && s.weight > 0)));
+        console.log('Has any set:', hasAnySet);
+        
         if (!hasAnySet) {
           if (!confirm('Вы не указали ни один подход. Сохранить запись?')) return;
         }
@@ -1822,14 +1827,19 @@ function collectCurrentEntry() {
           
           // Save locally first
           const current = getWorkouts();
+          console.log('Current workouts:', current);
           current.push(entry);
           setWorkouts(current);
+          console.log('Saved workouts:', current);
           
           showStatus('Тренировка сохранена!', 'success');
           
           // Auto-sync to Yandex Disk if enabled
           if (appConfig.autoSync) {
+            console.log('Auto-sync enabled, syncing...');
             await syncWorkoutsToYandex(current);
+          } else {
+            console.log('Auto-sync disabled');
           }
 
           // Update welcome page statistics if it's visible
@@ -1885,9 +1895,12 @@ function collectCurrentEntry() {
       });
 
       // Event listeners
-saveBtn.addEventListener('click', handleSave);
-addSetsToAllBtn.addEventListener('click', addSetToAll);
-syncBtn.addEventListener('click', () => { syncWorkoutsToYandex().catch(() => {}); });
+      console.log('Setting up event listeners...');
+      console.log('saveBtn:', saveBtn);
+      saveBtn.addEventListener('click', handleSave);
+      console.log('Save button event listener added');
+      addSetsToAllBtn.addEventListener('click', addSetToAll);
+      syncBtn.addEventListener('click', () => { syncWorkoutsToYandex().catch(() => {}); });
 
 // Initialize
 loadConfig();
