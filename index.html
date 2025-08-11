@@ -1198,7 +1198,7 @@
         
         let config = {
           yandexToken: '',
-          yandexPath: '/workouts.json',
+          yandexPath: '/MyFitness/workouts.json',
           autoSync: true,
           syncInterval: 15,
           defaultCycle: 1,
@@ -1613,7 +1613,7 @@ function collectCurrentEntry() {
       // App config (synced with settings page)
       let appConfig = {
         yandexToken: '',
-        yandexPath: '/workouts.json',
+        yandexPath: '/MyFitness/workouts.json',
         autoSync: false,
         syncInterval: 15,
         userInfo: null
@@ -1717,12 +1717,37 @@ function collectCurrentEntry() {
 
       async function syncWorkoutsToYandex(optionalWorkouts) {
         const token = appConfig.yandexToken?.trim();
-        const path = appConfig.yandexPath?.trim() || '/workouts.json';
+        const path = appConfig.yandexPath?.trim() || '/MyFitness/workouts.json';
         if (!token || !path) {
           showStatus('Укажите OAuth токен и путь в настройках', 'error');
           return false;
         }
         try {
+          // 0) Ensure MyFitness folder exists
+          const folderPath = '/MyFitness';
+          try {
+            const folderCheckResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources?path=${encodeURIComponent(folderPath)}`, {
+              headers: { 'Authorization': `OAuth ${token}` }
+            });
+            
+            if (folderCheckResp.status === 404) {
+              // Folder doesn't exist, create it
+              console.log('Creating MyFitness folder...');
+              const createFolderResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources?path=${encodeURIComponent(folderPath)}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `OAuth ${token}` }
+              });
+              
+              if (!createFolderResp.ok) {
+                console.warn('Failed to create MyFitness folder:', createFolderResp.status);
+              } else {
+                console.log('MyFitness folder created successfully');
+              }
+            }
+          } catch (e) {
+            console.warn('Failed to check/create MyFitness folder:', e);
+          }
+          
           // 1) Check if file exists, then download via API
           let remoteWorkouts = [];
           try {
