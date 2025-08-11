@@ -985,6 +985,49 @@
           
           if (bodyContent) {
             historyContent.innerHTML = bodyContent.innerHTML;
+            
+            // Add custom CSS to override stats layout
+            const style = document.createElement('style');
+            style.textContent = `
+              .stats-grid {
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 16px !important;
+                margin-bottom: 24px !important;
+              }
+              .stats-grid:nth-child(2) {
+                margin-top: 16px !important;
+              }
+            `;
+            document.head.appendChild(style);
+            
+            // Fix stats layout by modifying HTML structure
+            const statsGrids = historyContent.querySelectorAll('.stats-grid');
+            if (statsGrids.length >= 4) {
+              // Create new structure with two rows
+              const statsContainer = statsGrids[0].parentNode;
+              const firstRow = document.createElement('div');
+              firstRow.className = 'stats-grid';
+              firstRow.style.cssText = 'display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px;';
+              
+              const secondRow = document.createElement('div');
+              secondRow.className = 'stats-grid';
+              secondRow.style.cssText = 'display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 16px;';
+              
+              // Move first two stats to first row
+              firstRow.appendChild(statsGrids[0].cloneNode(true));
+              firstRow.appendChild(statsGrids[1].cloneNode(true));
+              
+              // Move last two stats to second row
+              secondRow.appendChild(statsGrids[2].cloneNode(true));
+              secondRow.appendChild(statsGrids[3].cloneNode(true));
+              
+              // Replace old structure
+              statsGrids.forEach(grid => grid.remove());
+              statsContainer.insertBefore(firstRow, statsContainer.firstChild);
+              statsContainer.insertBefore(secondRow, firstRow.nextSibling);
+            }
+            
             // Re-initialize history page scripts
             initializeHistoryPage();
           }
