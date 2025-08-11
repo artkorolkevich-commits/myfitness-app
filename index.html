@@ -577,7 +577,7 @@
 }
 .exercise-select { width: 240px; min-width: 0; }
 .remove-exercise {
-  position: static;                  /* чтобы не “выползал” за пределы */
+  position: static;                  /* чтобы не "выползал" за пределы */
   width: 28px; height: 28px;
   border-radius: 6px;
   border: 1px solid rgba(239,68,68,0.4);
@@ -1568,7 +1568,8 @@ function collectCurrentEntry() {
         yandexToken: '',
         yandexPath: '/workouts.json',
         autoSync: false,
-        syncInterval: 15
+        syncInterval: 15,
+        userInfo: null
       };
 
       function loadConfig() {
@@ -1580,6 +1581,65 @@ function collectCurrentEntry() {
         } catch (e) {
           console.warn('Failed to load config:', e);
         }
+      }
+
+      // OAuth flow
+      const YANDEX_OAUTH_URL = 'https://oauth.yandex.ru/authorize';
+      const CLIENT_ID = 'your_client_id_here'; // Replace with actual client ID
+      const REDIRECT_URI = window.location.origin + window.location.pathname;
+
+      function getOAuthUrl() {
+        const params = new URLSearchParams({
+          response_type: 'token',
+          client_id: CLIENT_ID,
+          redirect_uri: REDIRECT_URI
+        });
+        return `${YANDEX_OAUTH_URL}?${params}`;
+      }
+
+      function handleOAuthCallback() {
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        const accessToken = params.get('access_token');
+        const error = params.get('error');
+
+        if (error) {
+          showStatus(`Ошибка авторизации: ${error}`, 'error');
+          return;
+        }
+
+        if (accessToken) {
+          appConfig.yandexToken = accessToken;
+          localStorage.setItem(CONFIG_KEY, JSON.stringify(appConfig));
+          showStatus('Авторизация успешна!', 'success');
+          // Clear hash from URL
+          window.history.replaceState(null, '', window.location.pathname);
+          // Get user info and start sync
+          getUserInfo(accessToken);
+        }
+      }
+
+      async function getUserInfo(token) {
+        try {
+          const response = await fetch('https://login.yandex.ru/info', {
+            headers: { 'Authorization': `OAuth ${token}` }
+          });
+          if (response.ok) {
+            appConfig.userInfo = await response.json();
+            localStorage.setItem(CONFIG_KEY, JSON.stringify(appConfig));
+            // Start sync after successful auth
+            await syncWorkoutsToYandex();
+          }
+        } catch (e) {
+          console.warn('Failed to get user info:', e);
+        }
+      }
+
+      function logout() {
+        appConfig.yandexToken = '';
+        appConfig.userInfo = null;
+        localStorage.setItem(CONFIG_KEY, JSON.stringify(appConfig));
+        showStatus('Выход выполнен', 'info');
       }
 
       // Simple UUID v4 generator
@@ -1815,6 +1875,11 @@ syncBtn.addEventListener('click', () => { syncWorkoutsToYandex().catch(() => {})
 // Initialize
 loadConfig();
 startAutoSyncTimer();
+
+// Handle OAuth callback on page load
+if (window.location.hash.includes('access_token')) {
+  handleOAuthCallback();
+}
 
 // Pull from Yandex on startup to merge latest remote with local
 (async function initialPull(){
