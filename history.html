@@ -94,8 +94,8 @@
       
       .filter-row {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 12px;
         align-items: end;
       }
       
@@ -356,8 +356,12 @@
             </select>
           </div>
           <div class="filter-group">
-            <label for="filterDate">Дата</label>
-            <input id="filterDate" type="date" />
+            <label for="filterDateFrom">Дата с</label>
+            <input id="filterDateFrom" type="date" />
+          </div>
+          <div class="filter-group">
+            <label for="filterDateTo">Дата по</label>
+            <input id="filterDateTo" type="date" />
           </div>
           <div class="filter-actions">
             <button class="btn" id="applyFilters">Применить</button>

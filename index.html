@@ -1196,7 +1196,8 @@
           const cycle = document.getElementById('filterCycle')?.value;
           const week = document.getElementById('filterWeek')?.value;
           const session = document.getElementById('filterSession')?.value;
-          const date = document.getElementById('filterDate')?.value;
+          const dateFrom = document.getElementById('filterDateFrom')?.value;
+          const dateTo = document.getElementById('filterDateTo')?.value;
 
           let filtered = [...allWorkouts];
 
@@ -1209,10 +1210,21 @@
           if (session) {
             filtered = filtered.filter(w => w.session === parseInt(session));
           }
-          if (date) {
+          
+          // Date range filter
+          if (dateFrom || dateTo) {
             filtered = filtered.filter(w => {
-              const workoutDate = new Date(w.date).toISOString().split('T')[0];
-              return workoutDate === date;
+              const workoutDate = new Date(w.date);
+              const workoutDateStr = workoutDate.toISOString().split('T')[0];
+              
+              if (dateFrom && dateTo) {
+                return workoutDateStr >= dateFrom && workoutDateStr <= dateTo;
+              } else if (dateFrom) {
+                return workoutDateStr >= dateFrom;
+              } else if (dateTo) {
+                return workoutDateStr <= dateTo;
+              }
+              return true;
             });
           }
 
@@ -1225,12 +1237,14 @@
           const filterCycle = document.getElementById('filterCycle');
           const filterWeek = document.getElementById('filterWeek');
           const filterSession = document.getElementById('filterSession');
-          const filterDate = document.getElementById('filterDate');
+          const filterDateFrom = document.getElementById('filterDateFrom');
+          const filterDateTo = document.getElementById('filterDateTo');
           
           if (filterCycle) filterCycle.value = '';
           if (filterWeek) filterWeek.value = '';
           if (filterSession) filterSession.value = '';
-          if (filterDate) filterDate.value = '';
+          if (filterDateFrom) filterDateFrom.value = '';
+          if (filterDateTo) filterDateTo.value = '';
           
           currentWorkouts = [...allWorkouts];
           updateStats(currentWorkouts);
