@@ -2376,7 +2376,7 @@
               } else {
                 console.log('User info failed, trying model test...');
                 if (userResp.status === 401) {
-                  showStatus('API ключ неверный или не имеет прав доступа. Проверьте права на Inference API.', 'error');
+                  showStatus('API ключ неверный. Создайте новый токен с Role: Read.', 'error');
                   return;
                 }
               }
@@ -2386,6 +2386,8 @@
             
             // Fallback: test with a simple, reliable model
             const testModel = 'gpt2'; // Simple, always available model
+            
+            console.log('Testing Inference API with model:', testModel);
             
             const resp = await fetch(`https://api-inference.huggingface.co/models/${testModel}`, {
               method: 'POST',
