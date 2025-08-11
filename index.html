@@ -2340,6 +2340,17 @@
               showStatus('Введите API ключ для тестирования', 'error');
               return;
             }
+            
+            // Validate API key format
+            if (!apiKey.startsWith('hf_')) {
+              showStatus('API ключ должен начинаться с "hf_"', 'error');
+              return;
+            }
+            
+            if (apiKey.length < 30) {
+              showStatus('API ключ слишком короткий', 'error');
+              return;
+            }
             showStatus('Тестируем подключение к AI...', 'info');
             
             // First, test if the API key is valid by checking user info
@@ -2359,13 +2370,17 @@
                 return;
               } else {
                 console.log('User info failed, trying model test...');
+                if (userResp.status === 401) {
+                  showStatus('API ключ неверный или не имеет прав доступа', 'error');
+                  return;
+                }
               }
             } catch (userErr) {
               console.log('User info test failed, trying model test...', userErr);
             }
             
-            // Fallback: test with a simple model
-            const testModel = 'microsoft/DialoGPT-medium';
+            // Fallback: test with a simple, reliable model
+            const testModel = 'gpt2'; // Simple, always available model
             
             const resp = await fetch(`https://api-inference.huggingface.co/models/${testModel}`, {
               method: 'POST',
@@ -2374,7 +2389,7 @@
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({
-                inputs: "Hello, this is a test message."
+                inputs: "Hello world"
               })
             });
             
