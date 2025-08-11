@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MyFitness - Дневник тренировок</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
       :root {
         --bg: #0f172a;
@@ -634,6 +635,72 @@
         color: var(--accent);
         font-weight: 600;
       }
+
+      /* Progress Charts Styles */
+      .progress-charts {
+        background: rgba(148,163,184,0.02);
+        border: 1px solid rgba(148,163,184,0.1);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+      }
+
+      .progress-charts h4 {
+        margin-bottom: 16px;
+        color: var(--text);
+        text-align: center;
+      }
+
+      .chart-container {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(148,163,184,0.1);
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+        text-align: center;
+      }
+
+      .chart-container canvas {
+        max-width: 100%;
+        height: auto;
+      }
+
+      .chart-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+      }
+
+      .stat-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(148,163,184,0.1);
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+      }
+
+      .stat-title {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+
+      .stat-value {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--accent);
+      }
+
+      /* Responsive chart */
+      @media (max-width: 768px) {
+        .chart-stats {
+          grid-template-columns: 1fr;
+        }
+        
+        .chart-container canvas {
+          max-height: 250px;
+        }
+      }
       
       /* Responsive */
       @media (max-width: 768px) {
@@ -1224,6 +1291,28 @@
                 <div class="result-item">
                   <span class="result-label">Рекомендации:</span>
                   <span class="result-value" id="recommendations">-</span>
+                </div>
+              </div>
+              
+              <!-- Progress Charts -->
+              <div class="progress-charts">
+                <h4>Графики прогресса</h4>
+                <div class="chart-container">
+                  <canvas id="fatProgressChart" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-stats">
+                  <div class="stat-card">
+                    <div class="stat-title">Средний % жира</div>
+                    <div class="stat-value" id="avgFatPercentage">-</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="stat-title">Изменение за месяц</div>
+                    <div class="stat-value" id="monthlyChange">-</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="stat-title">Всего измерений</div>
+                    <div class="stat-value" id="totalMeasurements">-</div>
+                  </div>
                 </div>
               </div>
               
@@ -3135,6 +3224,12 @@ let currentAnalysis = null;
 function loadBodyAnalysisPage() {
   setupPhotoUpload();
   loadAnalysisHistory();
+  
+  // Initialize charts with existing data
+  const analyses = JSON.parse(localStorage.getItem('bodyAnalyses') || '[]');
+  if (analyses.length > 0) {
+    updateProgressCharts(analyses);
+  }
 }
 
 function setupPhotoUpload() {
@@ -3541,6 +3636,209 @@ function loadAnalysisHistory() {
   }).join('');
   
   console.log('History updated successfully');
+  
+  // Update charts and stats
+  updateProgressCharts(analyses);
+}
+
+// Chart variables
+let fatProgressChart = null;
+
+function updateProgressCharts(analyses) {
+  console.log('updateProgressCharts called with:', analyses);
+  
+  if (analyses.length === 0) {
+    console.log('No analyses to display in charts');
+    return;
+  }
+  
+  // Sort analyses by date (oldest first)
+  const sortedAnalyses = analyses.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  
+  // Prepare chart data
+  const chartData = sortedAnalyses.map(analysis => ({
+    date: new Date(analysis.timestamp),
+    fatPercentage: analysis.fatPercentage
+  }));
+  
+  // Update statistics
+  updateChartStats(chartData);
+  
+  // Create or update chart
+  createFatProgressChart(chartData);
+}
+
+function updateChartStats(chartData) {
+  console.log('updateChartStats called with:', chartData);
+  
+  if (chartData.length === 0) return;
+  
+  // Calculate average fat percentage
+  const totalFat = chartData.reduce((sum, data) => sum + data.fatPercentage, 0);
+  const avgFat = totalFat / chartData.length;
+  
+  // Calculate monthly change
+  const monthlyChange = calculateMonthlyChange(chartData);
+  
+  // Update DOM elements
+  const avgFatElement = document.getElementById('avgFatPercentage');
+  const monthlyChangeElement = document.getElementById('monthlyChange');
+  const totalMeasurementsElement = document.getElementById('totalMeasurements');
+  
+  if (avgFatElement) {
+    avgFatElement.textContent = avgFat.toFixed(1) + '%';
+  }
+  
+  if (monthlyChangeElement) {
+    if (monthlyChange !== null) {
+      const changeText = monthlyChange > 0 ? `+${monthlyChange.toFixed(1)}%` : `${monthlyChange.toFixed(1)}%`;
+      monthlyChangeElement.textContent = changeText;
+      monthlyChangeElement.style.color = monthlyChange > 0 ? '#ef4444' : '#22c55e';
+    } else {
+      monthlyChangeElement.textContent = 'Н/Д';
+      monthlyChangeElement.style.color = 'var(--muted)';
+    }
+  }
+  
+  if (totalMeasurementsElement) {
+    totalMeasurementsElement.textContent = chartData.length;
+  }
+}
+
+function calculateMonthlyChange(chartData) {
+  if (chartData.length < 2) return null;
+  
+  const now = new Date();
+  const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+  
+  // Find measurements from last month and current month
+  const lastMonthData = chartData.filter(data => data.date < oneMonthAgo);
+  const currentMonthData = chartData.filter(data => data.date >= oneMonthAgo);
+  
+  if (lastMonthData.length === 0 || currentMonthData.length === 0) return null;
+  
+  const lastMonthAvg = lastMonthData.reduce((sum, data) => sum + data.fatPercentage, 0) / lastMonthData.length;
+  const currentMonthAvg = currentMonthData.reduce((sum, data) => sum + data.fatPercentage, 0) / currentMonthData.length;
+  
+  return currentMonthAvg - lastMonthAvg;
+}
+
+function createFatProgressChart(chartData) {
+  console.log('createFatProgressChart called with:', chartData);
+  
+  const ctx = document.getElementById('fatProgressChart');
+  if (!ctx) {
+    console.error('fatProgressChart canvas not found');
+    return;
+  }
+  
+  // Destroy existing chart if it exists
+  if (fatProgressChart) {
+    fatProgressChart.destroy();
+  }
+  
+  // Prepare data for Chart.js
+  const labels = chartData.map(data => {
+    const date = data.date;
+    return date.toLocaleDateString('ru-RU', { 
+      day: '2-digit', 
+      month: '2-digit' 
+    });
+  });
+  
+  const data = chartData.map(data => data.fatPercentage);
+  
+  // Create gradient for line
+  const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 200);
+  gradient.addColorStop(0, 'rgba(34, 197, 94, 0.8)');
+  gradient.addColorStop(1, 'rgba(34, 197, 94, 0.1)');
+  
+  // Create chart
+  fatProgressChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Процент жира (%)',
+        data: data,
+        borderColor: '#22c55e',
+        backgroundColor: gradient,
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#22c55e',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointRadius: 6,
+        pointHoverRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          titleColor: '#ffffff',
+          bodyColor: '#ffffff',
+          borderColor: '#22c55e',
+          borderWidth: 1,
+          cornerRadius: 8,
+          displayColors: false,
+          callbacks: {
+            title: function(context) {
+              return 'Дата: ' + context[0].label;
+            },
+            label: function(context) {
+              return 'Процент жира: ' + context.parsed.y + '%';
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: {
+            color: 'rgba(148, 163, 184, 0.1)'
+          },
+          ticks: {
+            color: 'var(--muted)',
+            font: {
+              size: 12
+            }
+          }
+        },
+        y: {
+          beginAtZero: false,
+          grid: {
+            color: 'rgba(148, 163, 184, 0.1)'
+          },
+          ticks: {
+            color: 'var(--muted)',
+            font: {
+              size: 12
+            },
+            callback: function(value) {
+              return value + '%';
+            }
+          }
+        }
+      },
+      interaction: {
+        intersect: false,
+        mode: 'index'
+      },
+      elements: {
+        point: {
+          hoverBackgroundColor: '#22c55e'
+        }
+      }
+    }
+  });
+  
+  console.log('Fat progress chart created successfully');
 }
       
       // Test data functions
