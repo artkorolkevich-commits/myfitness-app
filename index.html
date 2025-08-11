@@ -2351,6 +2351,11 @@
               showStatus('API ключ слишком короткий', 'error');
               return;
             }
+            
+            // Debug: show API key info (first 4 and last 4 chars)
+            const keyStart = apiKey.substring(0, 4);
+            const keyEnd = apiKey.substring(apiKey.length - 4);
+            console.log(`Testing API key: ${keyStart}...${keyEnd} (length: ${apiKey.length})`);
             showStatus('Тестируем подключение к AI...', 'info');
             
             // First, test if the API key is valid by checking user info
@@ -2371,7 +2376,7 @@
               } else {
                 console.log('User info failed, trying model test...');
                 if (userResp.status === 401) {
-                  showStatus('API ключ неверный или не имеет прав доступа', 'error');
+                  showStatus('API ключ неверный или не имеет прав доступа. Проверьте права на Inference API.', 'error');
                   return;
                 }
               }
