@@ -1123,11 +1123,11 @@
                 <button class="btn-primary" onclick="showPage('main')" style="padding: 12px 24px; font-size: 16px;">
                   🏋️ Начать тренировку
                 </button>
-                <div style="margin-top: 16px;">
-                  <button onclick="location.reload(true)" style="padding: 8px 16px; background: var(--muted); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
-                    🔄 Обновить кэш
-                  </button>
-                </div>
+                              <div style="margin-top: 16px;">
+                <button onclick="clearCacheAndReload()" style="padding: 8px 16px; background: var(--muted); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                  🔄 Обновить кэш
+                </button>
+              </div>
               </div>
               
               <!-- Test data section (only visible in development) -->
@@ -1789,7 +1789,12 @@
         `;
         
         try {
-          const response = await fetch(`./settings.html?v=${Date.now()}`);
+          const response = await fetch(`./settings.html?v=${Date.now()}&cache=${Math.random()}`);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          
           const html = await response.text();
           
           // Extract body content
@@ -1801,12 +1806,18 @@
             settingsContent.innerHTML = bodyContent.innerHTML;
             // Re-initialize settings page scripts
             initializeSettingsPage();
+          } else {
+            throw new Error('Settings content not found in HTML');
           }
         } catch (e) {
+          console.error('Failed to load settings:', e);
           settingsContent.innerHTML = `
             <div style="text-align: center; padding: 40px; color: var(--danger);">
-              <h3>Ошибка загрузки</h3>
-              <p>Не удалось загрузить страницу настроек</p>
+              <h3>Ошибка загрузки настроек</h3>
+              <p>Не удалось загрузить страницу настроек: ${e.message}</p>
+              <button onclick="clearCacheAndReload()" style="margin-top: 16px; padding: 8px 16px; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                🔄 Очистить кэш и перезагрузить
+              </button>
             </div>
           `;
         }
@@ -2406,6 +2417,34 @@
         loadConfig();
       }
       
+      // Cache clearing function
+      async function clearCacheAndReload() {
+        try {
+          // Clear service worker cache
+          if ('caches' in window) {
+            const cacheNames = await caches.keys();
+            await Promise.all(cacheNames.map(name => caches.delete(name)));
+            console.log('Service worker cache cleared');
+          }
+          
+          // Unregister service worker
+          if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(registrations.map(reg => reg.unregister()));
+            console.log('Service worker unregistered');
+          }
+          
+          // Clear localStorage (optional - uncomment if needed)
+          // localStorage.clear();
+          
+          // Force reload
+          window.location.reload(true);
+        } catch (error) {
+          console.error('Error clearing cache:', error);
+          window.location.reload(true);
+        }
+      }
+
       // Initialize main page functionality
       const CONFIG_KEY = 'myfitness_config';
       const cycleEl = document.getElementById('cycle');
