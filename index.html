@@ -2356,6 +2356,12 @@
             const keyStart = apiKey.substring(0, 4);
             const keyEnd = apiKey.substring(apiKey.length - 4);
             console.log(`Testing API key: ${keyStart}...${keyEnd} (length: ${apiKey.length})`);
+            
+            // Check for common issues
+            if (apiKey.includes(' ')) {
+              showStatus('API ключ содержит пробелы. Удалите лишние пробелы.', 'error');
+              return;
+            }
             showStatus('Тестируем подключение к AI...', 'info');
             
             // First, test if the API key is valid by checking user info
@@ -2376,8 +2382,8 @@
               } else {
                 console.log('User info failed, trying model test...');
                 if (userResp.status === 401) {
-                  showStatus('API ключ неверный. Создайте новый токен с Role: Read.', 'error');
-                  return;
+                  console.log('User API failed, trying Inference API directly...');
+                  // Don't return here, try Inference API instead
                 }
               }
             } catch (userErr) {
