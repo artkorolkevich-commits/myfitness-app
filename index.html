@@ -986,7 +986,7 @@
           if (bodyContent) {
             historyContent.innerHTML = bodyContent.innerHTML;
             
-            // Add custom CSS to override stats layout
+            // Add custom CSS to override stats layout and new compact workout format
             const style = document.createElement('style');
             style.textContent = `
               .stats-grid {
@@ -997,6 +997,34 @@
               }
               .stats-grid:nth-child(2) {
                 margin-top: 16px !important;
+              }
+              
+              /* Compact workout format */
+              .compact-workout-item {
+                background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+                border: 1px solid rgba(148, 163, 184, 0.2);
+                border-radius: 12px;
+                padding: 20px;
+                margin-bottom: 16px;
+              }
+              
+              .workout-date {
+                font-size: 18px;
+                font-weight: 700;
+                color: var(--accent);
+                margin-bottom: 12px;
+                text-align: center;
+              }
+              
+              .workout-exercises {
+                font-size: 14px;
+                line-height: 1.6;
+                color: var(--text);
+              }
+              
+              .workout-exercises strong {
+                color: var(--accent);
+                font-weight: 600;
               }
             `;
             document.head.appendChild(style);
@@ -1134,43 +1162,31 @@
             return;
           }
 
-          historyList.innerHTML = workouts.map(workout => {
+          // Take only last 4 workouts and reverse to show newest first
+          const recentWorkouts = workouts.slice(-4).reverse();
+          
+          historyList.innerHTML = recentWorkouts.map(workout => {
             const date = new Date(workout.date);
+            const compactDate = date.toLocaleDateString('ru-RU', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            });
+            
             const exercisesHtml = workout.exercises.map(exercise => {
-              const setsHtml = exercise.sets.map((set, index) => 
-                `<span class="set-badge">${index + 1}) ${set.reps}×${set.weight || '—'}кг</span>`
-              ).join('');
+              const setsHtml = exercise.sets.map(set => {
+                const weight = set.weight || 0;
+                const reps = set.reps || 0;
+                return `${weight}кг(${reps})`;
+              }).join(' ');
               
-              return `
-                <div class="exercise-item">
-                  <div class="exercise-header">
-                    <div class="exercise-name">${exercise.exercise}</div>
-                    <div class="exercise-group">${exercise.group}</div>
-                  </div>
-                  <div class="sets-list">${setsHtml}</div>
-                </div>
-              `;
-            }).join('');
+              return `<strong>${exercise.exercise}:</strong> ${setsHtml}`;
+            }).join('<br>');
 
             return `
-              <div class="history-item">
-                <div class="history-header">
-                  <div class="history-meta">
-                    <div class="history-title">Цикл ${workout.cycle}, Неделя ${workout.week}, Тренировка ${workout.session}</div>
-                    <div class="history-date">${date.toLocaleDateString('ru-RU', { 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}</div>
-                  </div>
-                  <div class="history-stats">
-                    <span>${workout.exercises.length} упражнений</span>
-                    <span>${workout.exercises.reduce((sum, ex) => sum + ex.sets.length, 0)} подходов</span>
-                  </div>
-                </div>
-                <div class="history-exercises">${exercisesHtml}</div>
+              <div class="compact-workout-item">
+                <div class="workout-date">${compactDate}</div>
+                <div class="workout-exercises">${exercisesHtml}</div>
               </div>
             `;
           }).join('');
