@@ -1191,6 +1191,8 @@
       }
       
       function initializeSettingsPage() {
+        console.log('initializeSettingsPage called');
+        
         // Configuration management
         const CONFIG_KEY = 'myfitness_config';
         
@@ -1200,7 +1202,8 @@
           autoSync: true,
           syncInterval: 15,
           defaultCycle: 1,
-          theme: 'dark'
+          theme: 'dark',
+          userInfo: null
         };
         
         function loadConfig() {
@@ -1217,14 +1220,12 @@
         
         function saveConfig() {
           try {
-            const yandexToken = document.getElementById('yandexToken')?.value;
             const yandexPath = document.getElementById('yandexPath')?.value;
             const autoSync = document.getElementById('autoSync')?.checked;
             const syncInterval = parseInt(document.getElementById('syncInterval')?.value);
             const defaultCycle = parseInt(document.getElementById('defaultCycle')?.value);
             const theme = document.getElementById('theme')?.value;
             
-            if (yandexToken !== undefined) config.yandexToken = yandexToken;
             if (yandexPath !== undefined) config.yandexPath = yandexPath;
             if (autoSync !== undefined) config.autoSync = autoSync;
             if (syncInterval) config.syncInterval = syncInterval;
@@ -1240,19 +1241,19 @@
         }
         
         function applyConfigToUI() {
-          const yandexToken = document.getElementById('yandexToken');
           const yandexPath = document.getElementById('yandexPath');
           const autoSync = document.getElementById('autoSync');
           const syncInterval = document.getElementById('syncInterval');
           const defaultCycle = document.getElementById('defaultCycle');
           const theme = document.getElementById('theme');
           
-          if (yandexToken) yandexToken.value = config.yandexToken;
           if (yandexPath) yandexPath.value = config.yandexPath;
           if (autoSync) autoSync.checked = config.autoSync;
           if (syncInterval) syncInterval.value = config.syncInterval;
           if (defaultCycle) defaultCycle.value = config.defaultCycle;
           if (theme) theme.value = config.theme;
+          
+          updateAuthStatus();
         }
         
         function showStatus(message, type = 'info') {
@@ -1267,69 +1268,115 @@
           }
         }
         
-        async function testYandexConnection() {
-          const token = document.getElementById('yandexToken')?.value.trim();
+        function updateAuthStatus() {
+          const authStatus = document.getElementById('authStatus');
+          const loginBtn = document.getElementById('loginBtn');
+          const logoutBtn = document.getElementById('logoutBtn');
           
-          if (!token) {
-            showStatus('Введите OAuth токен для проверки подключения', 'error');
-            return;
+          if (config.userInfo) {
+            if (authStatus) authStatus.innerHTML = `<div class="user-info">Вошли как: ${config.userInfo.real_name || config.userInfo.display_name || config.userInfo.login}</div>`;
+            if (loginBtn) loginBtn.style.display = 'none';
+            if (logoutBtn) logoutBtn.style.display = 'inline-block';
+          } else {
+            if (authStatus) authStatus.innerHTML = '<div class="user-info">Не авторизованы</div>';
+            if (loginBtn) loginBtn.style.display = 'inline-block';
+            if (logoutBtn) logoutBtn.style.display = 'none';
           }
-          
+        }
+        
+        function loginWithYandex() {
+          console.log('loginWithYandex called from settings');
+          const oauthUrl = `https://oauth.yandex.ru/authorize?response_type=token&client_id=07ca787a8f60406eab80bce2c2cf80c4&redirect_uri=${encodeURIComponent(window.location.origin + window.location.pathname)}`;
+          console.log('OAuth URL:', oauthUrl);
+          window.location.href = oauthUrl;
+        }
+        
+        function logoutFromYandex() {
+          config.yandexToken = '';
+          config.userInfo = null;
+          localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+          updateAuthStatus();
+          showStatus('Выход выполнен', 'info');
+        }
+        
+        function exportData() {
           try {
-            const btn = document.getElementById('testConnection');
-            if (btn) {
-              btn.disabled = true;
-              btn.textContent = 'Проверка...';
-            }
+            const workouts = JSON.parse(localStorage.getItem('workouts') || '[]');
+            const dataStr = JSON.stringify(workouts, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
             
-            const response = await fetch('https://cloud-api.yandex.net/v1/disk', {
-              headers: {
-                'Authorization': `OAuth ${token}`
-              }
-            });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `myfitness-backup-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
             
-            if (response.ok) {
-              const data = await response.json();
-              const total = Number(data.total_space);
-              const used = Number(data.used_space);
-              const available = total - used;
-              
-              showStatus(
-                `Подключение успешно! Доступно места: ${Math.round(available / 1024 / 1024 / 1024)} ГБ`, 
-                'success'
-              );
-            } else {
-              showStatus(`Ошибка подключения: ${response.status} ${response.statusText}`, 'error');
-            }
+            showStatus('Данные экспортированы', 'success');
           } catch (e) {
-            showStatus(`Ошибка: ${e.message}`, 'error');
-          } finally {
-            const btn = document.getElementById('testConnection');
-            if (btn) {
-              btn.disabled = false;
-              btn.textContent = 'Проверить подключение';
-            }
+            showStatus('Ошибка экспорта данных', 'error');
+          }
+        }
+        
+        function importData() {
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = '.json';
+          
+          input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              try {
+                const data = JSON.parse(e.target.result);
+                localStorage.setItem('workouts', JSON.stringify(data));
+                showStatus('Данные импортированы', 'success');
+              } catch (e) {
+                showStatus('Ошибка импорта: неверный формат файла', 'error');
+              }
+            };
+            reader.readAsText(file);
+          };
+          
+          input.click();
+        }
+        
+        function clearData() {
+          if (confirm('Вы уверены, что хотите удалить все данные? Это действие нельзя отменить.')) {
+            localStorage.removeItem('workouts');
+            showStatus('Все данные удалены', 'success');
           }
         }
         
         // Event listeners
-        const testConnectionBtn = document.getElementById('testConnection');
+        console.log('Setting up settings page event listeners...');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
         const syncNowBtn = document.getElementById('syncNow');
         const exportDataBtn = document.getElementById('exportData');
         const importDataBtn = document.getElementById('importData');
         const clearDataBtn = document.getElementById('clearData');
         
-        if (testConnectionBtn) testConnectionBtn.addEventListener('click', testYandexConnection);
+        console.log('loginBtn:', loginBtn);
+        if (loginBtn) {
+          loginBtn.addEventListener('click', loginWithYandex);
+          console.log('Login button event listener added');
+        }
+        
+        if (logoutBtn) logoutBtn.addEventListener('click', logoutFromYandex);
         if (syncNowBtn) syncNowBtn.addEventListener('click', () => {
           showStatus('Синхронизация запущена...', 'info');
           setTimeout(() => {
             showStatus('Синхронизация завершена', 'success');
           }, 2000);
         });
+        if (exportDataBtn) exportDataBtn.addEventListener('click', exportData);
+        if (importDataBtn) importDataBtn.addEventListener('click', importData);
+        if (clearDataBtn) clearDataBtn.addEventListener('click', clearData);
         
         // Auto-save on input changes
         [
-          'yandexToken', 'yandexPath', 'autoSync', 'syncInterval', 'defaultCycle', 'theme'
+          'yandexPath', 'autoSync', 'syncInterval', 'defaultCycle', 'theme'
         ].forEach(id => {
           const element = document.getElementById(id);
           if (element) {
