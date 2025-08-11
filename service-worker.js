@@ -53,6 +53,9 @@ self.addEventListener('fetch', event => {
         })
         .catch(() => cached);
       return cached || network;
+    }).catch(() => {
+      // Fallback for CORS errors
+      return new Response('', { status: 404 });
     })
   );
 });

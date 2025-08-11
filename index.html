@@ -1677,18 +1677,32 @@ function collectCurrentEntry() {
         }
         try {
           // 1) Download remote, merge, then upload
-          const remoteResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/download?path=${encodeURIComponent(path)}`, {
-            headers: { 'Authorization': `OAuth ${token}` }
-          });
           let remoteWorkouts = [];
-          if (remoteResp.ok) {
-            const { href: downloadHref } = await remoteResp.json();
-            if (downloadHref) {
-              const fileResp = await fetch(downloadHref);
-              if (fileResp.ok) {
-                try { remoteWorkouts = await fileResp.json(); } catch { remoteWorkouts = []; }
+          try {
+            const remoteResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/download?path=${encodeURIComponent(path)}`, {
+              headers: { 'Authorization': `OAuth ${token}` }
+            });
+            
+            if (remoteResp.ok) {
+              const { href: downloadHref } = await remoteResp.json();
+              if (downloadHref) {
+                // Use XMLHttpRequest to avoid CORS issues with direct file download
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', downloadHref, false); // Synchronous to avoid promise issues
+                xhr.send();
+                
+                if (xhr.status === 200) {
+                  try { 
+                    remoteWorkouts = JSON.parse(xhr.responseText); 
+                  } catch { 
+                    remoteWorkouts = []; 
+                  }
+                }
               }
             }
+          } catch (e) {
+            console.warn('Failed to download remote file, starting with empty array:', e);
+            remoteWorkouts = [];
           }
 
           const localWorkouts = optionalWorkouts ?? getWorkouts();
