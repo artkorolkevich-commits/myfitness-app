@@ -282,6 +282,213 @@
         border: 1px solid rgba(59,130,246,0.3);
         color: #60a5fa;
       }
+
+      /* Exercise Selection Styles */
+      .exercise-selection {
+        margin-bottom: 20px;
+      }
+
+      .exercise-filters {
+        margin-bottom: 16px;
+      }
+
+      .search-container {
+        margin-bottom: 12px;
+      }
+
+      .exercise-search {
+        width: 100%;
+        background: #0b1220;
+        color: var(--text);
+        border: 1px solid rgba(148,163,184,0.25);
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 14px;
+        outline: none;
+      }
+
+      .exercise-search:focus {
+        border-color: var(--accent);
+      }
+
+      .filter-buttons {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+      }
+
+      .filter-btn {
+        background: rgba(148,163,184,0.1);
+        color: var(--text);
+        border: 1px solid rgba(148,163,184,0.25);
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .filter-btn:hover {
+        background: rgba(148,163,184,0.2);
+      }
+
+      .filter-btn.active {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+      }
+
+      .group-filters {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .group-btn {
+        background: rgba(59,130,246,0.1);
+        color: #60a5fa;
+        border: 1px solid rgba(59,130,246,0.3);
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .group-btn:hover {
+        background: rgba(59,130,246,0.2);
+      }
+
+      .group-btn.active {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+      }
+
+      .exercise-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .exercise-card {
+        background: rgba(148,163,184,0.05);
+        border: 1px solid rgba(148,163,184,0.15);
+        border-radius: 8px;
+        padding: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+      }
+
+      .exercise-card:hover {
+        background: rgba(148,163,184,0.1);
+        border-color: rgba(148,163,184,0.3);
+        transform: translateY(-1px);
+      }
+
+      .exercise-card.selected {
+        background: rgba(34,197,94,0.1);
+        border-color: var(--accent);
+      }
+
+      .exercise-card.selected::after {
+        content: "✓";
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: var(--accent);
+        color: white;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+      .exercise-name {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 4px;
+        color: var(--text);
+      }
+
+      .exercise-group {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+
+      .exercise-tags {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+
+      .exercise-tag {
+        background: rgba(148,163,184,0.1);
+        color: var(--muted);
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-size: 10px;
+      }
+
+      .selected-counter {
+        text-align: center;
+        font-size: 14px;
+        color: var(--muted);
+        margin-bottom: 16px;
+      }
+
+      .selected-counter span {
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      .selected-exercises {
+        margin-bottom: 16px;
+      }
+
+      .selected-exercise-item {
+        background: rgba(34,197,94,0.05);
+        border: 1px solid rgba(34,197,94,0.2);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 8px;
+      }
+
+      .selected-exercise-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .selected-exercise-name {
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .remove-exercise-btn {
+        background: rgba(239,68,68,0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239,68,68,0.3);
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+
+      .selected-exercise-sets {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
       
       /* Responsive */
       @media (max-width: 768px) {
@@ -758,88 +965,48 @@
                 </div>
               </div>
 
-              <div class="wf-head wf-grid">
-                <div>Группа мышц</div>
-                <div>Упражнение</div>
-                <div>Подходы (повторы и вес)</div>
+              <!-- Exercise Selection Interface -->
+              <div class="exercise-selection">
+                <!-- Search and Filters -->
+                <div class="exercise-filters">
+                  <div class="search-container">
+                    <input type="text" id="exerciseSearch" placeholder="🔍 Поиск упражнений..." class="exercise-search">
+                  </div>
+                  
+                  <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">Все</button>
+                    <button class="filter-btn" data-filter="popular">Популярные</button>
+                    <button class="filter-btn" data-filter="recent">Недавние</button>
+                  </div>
+                  
+                  <div class="group-filters">
+                    <button class="group-btn" data-group="Грудь">Грудь</button>
+                    <button class="group-btn" data-group="Спина">Спина</button>
+                    <button class="group-btn" data-group="Ноги">Ноги</button>
+                    <button class="group-btn" data-group="Плечи">Плечи</button>
+                    <button class="group-btn" data-group="Бицепс">Бицепс</button>
+                    <button class="group-btn" data-group="Трицепс">Трицепс</button>
+                    <button class="group-btn" data-group="Задние дельты">Задние дельты</button>
+                  </div>
+                </div>
+
+                <!-- Exercise Grid -->
+                <div class="exercise-grid" id="exerciseGrid">
+                  <!-- Exercises will be populated by JavaScript -->
+                </div>
+
+                <!-- Selected Exercises Counter -->
+                <div class="selected-counter">
+                  <span id="selectedCount">0</span> из 8 упражнений выбрано
+                </div>
               </div>
 
-              <div class="wf-grid wf-row">
-                <div class="label">Грудь</div>
-                <select id="ex-chest">
-                  <option>Жим лежа</option>
-                  <option>Отжимания на брусьях</option>
-                  <option>Жим гантелей на скамье 30 градусов</option>
-                </select>
-                <div class="sets" id="sets-chest"></div>
-                <button type="button" class="btn-secondary add-set-btn" data-target="sets-chest">Добавить подход</button>
+              <!-- Selected Exercises List -->
+              <div class="selected-exercises" id="selectedExercises">
+                <!-- Selected exercises will be shown here -->
               </div>
 
-              <div class="wf-grid wf-row">
-                <div class="label">Спина</div>
-                <select id="ex-back">
-                  <option>Подтягивание</option>
-                  <option>Тяга штанги</option>
-                  <option>Тяга в блочном тренажере</option>
-                </select>
-                <div class="sets" id="sets-back"></div>
-                <button type="button" class="btn-secondary add-set-btn" data-target="sets-back">Добавить подход</button>
-              </div>
-
-              <div class="wf-grid wf-row">
-                <div class="label">Ноги</div>
-                <select id="ex-legs">
-                  <option>Присед со штангой</option>
-                  <option>Выпады с гантелями</option>
-                  <option>Жим ногами в блочном тренажере</option>
-                  <option>Румынская тяга</option>
-                </select>
-                <div class="sets" id="sets-legs"></div>
-                <button type="button" class="btn-secondary add-set-btn" data-target="sets-legs">Добавить подход</button>
-              </div>
-
-              <div class="wf-grid wf-row">
-                <div class="label">Плечи</div>
-                <select id="ex-shoulders">
-                  <option>Разведение гантелей в стороны</option>
-                  <option>Тяга штанги с w-образным грифом к подбородку</option>
-                </select>
-                <div class="sets" id="sets-shoulders"></div>
-                <button type="button" class="btn-secondary add-set-btn" data-target="sets-shoulders">Добавить подход</button>
-              </div>
-
-              <div class="wf-grid wf-row">
-                <div class="label">Бицепс</div>
-                <select id="ex-biceps">
-                  <option>Хаммер с гантелями</option>
-                  <option>Поднятие штанги с w-образным грифом</option>
-                  <option>Поднятие гантели сидя с упором в трицепс</option>
-                </select>
-                <div class="sets" id="sets-biceps"></div>
-                <button type="button" class="btn-secondary add-set-btn" data-target="sets-biceps">Добавить подход</button>
-              </div>
-
-              <div class="wf-grid wf-row">
-                <div class="label">Трицепс</div>
-                <select id="ex-triceps">
-                  <option>Опускание гантели за голову</option>
-                  <option>Французский жим гантелями</option>
-                  <option>Жим в блочном тренажере на трицепс</option>
-                </select>
-                <div class="sets" id="sets-triceps"></div>
-                <button type="button" class="btn-secondary add-set-btn" data-target="sets-triceps">Добавить подход</button>
-              </div>
-
-              <div class="wf-grid wf-row">
-                <div class="label">Задние дельты</div>
-                <select id="ex-reardelt">
-                  <option>Разводка рук в тренажере-бабочке</option>
-                </select>
-                <div class="sets" id="sets-reardelt"></div>
-                <button type="button" class="btn-secondary add-set-btn" data-target="sets-reardelt">Добавить подход</button>
-              </div>
-
-              <button id="addSetsToAll" type="button" class="btn-secondary">Добавить подход во все группы</button>
+              <button id="addSetsToAll" type="button" class="btn-secondary">Добавить подход во все упражнения</button>
               
               <div class="wf-actions">
                 <button id="saveWorkoutBtn" type="button">Сохранить тренировку</button>
@@ -872,6 +1039,139 @@
     </div>
 
     <script>
+      // Exercise data structure with tags
+      const exercises = [
+        {
+          id: 'bench-press',
+          name: 'Жим лежа',
+          group: 'Грудь',
+          tags: ['базовое', 'сила', 'жим', 'штанга'],
+          isPopular: true
+        },
+        {
+          id: 'dips',
+          name: 'Отжимания на брусьях',
+          group: 'Грудь',
+          tags: ['базовое', 'сила', 'собственный вес'],
+          isPopular: true
+        },
+        {
+          id: 'incline-dumbbell-press',
+          name: 'Жим гантелей на скамье 30 градусов',
+          group: 'Грудь',
+          tags: ['изолирующее', 'сила', 'гантели', 'наклон']
+        },
+        {
+          id: 'pull-ups',
+          name: 'Подтягивание',
+          group: 'Спина',
+          tags: ['базовое', 'сила', 'собственный вес'],
+          isPopular: true
+        },
+        {
+          id: 'barbell-row',
+          name: 'Тяга штанги',
+          group: 'Спина',
+          tags: ['базовое', 'сила', 'штанга'],
+          isPopular: true
+        },
+        {
+          id: 'cable-row',
+          name: 'Тяга в блочном тренажере',
+          group: 'Спина',
+          tags: ['изолирующее', 'сила', 'тренажер']
+        },
+        {
+          id: 'squat',
+          name: 'Присед со штангой',
+          group: 'Ноги',
+          tags: ['базовое', 'сила', 'штанга'],
+          isPopular: true
+        },
+        {
+          id: 'lunges',
+          name: 'Выпады с гантелями',
+          group: 'Ноги',
+          tags: ['базовое', 'сила', 'гантели', 'баланс']
+        },
+        {
+          id: 'leg-press',
+          name: 'Жим ногами в блочном тренажере',
+          group: 'Ноги',
+          tags: ['изолирующее', 'сила', 'тренажер']
+        },
+        {
+          id: 'romanian-deadlift',
+          name: 'Румынская тяга',
+          group: 'Ноги',
+          tags: ['базовое', 'сила', 'штанга', 'задняя поверхность бедра'],
+          isPopular: true
+        },
+        {
+          id: 'lateral-raise',
+          name: 'Разведение гантелей в стороны',
+          group: 'Плечи',
+          tags: ['изолирующее', 'сила', 'гантели'],
+          isPopular: true
+        },
+        {
+          id: 'upright-row',
+          name: 'Тяга штанги с w-образным грифом к подбородку',
+          group: 'Плечи',
+          tags: ['изолирующее', 'сила', 'штанга']
+        },
+        {
+          id: 'hammer-curl',
+          name: 'Хаммер с гантелями',
+          group: 'Бицепс',
+          tags: ['изолирующее', 'сила', 'гантели'],
+          isPopular: true
+        },
+        {
+          id: 'ez-bar-curl',
+          name: 'Поднятие штанги с w-образным грифом',
+          group: 'Бицепс',
+          tags: ['изолирующее', 'сила', 'штанга']
+        },
+        {
+          id: 'concentration-curl',
+          name: 'Поднятие гантели сидя с упором в трицепс',
+          group: 'Бицепс',
+          tags: ['изолирующее', 'сила', 'гантели', 'концентрация']
+        },
+        {
+          id: 'overhead-extension',
+          name: 'Опускание гантели за голову',
+          group: 'Трицепс',
+          tags: ['изолирующее', 'сила', 'гантели'],
+          isPopular: true
+        },
+        {
+          id: 'french-press',
+          name: 'Французский жим гантелями',
+          group: 'Трицепс',
+          tags: ['изолирующее', 'сила', 'гантели']
+        },
+        {
+          id: 'cable-triceps',
+          name: 'Жим в блочном тренажере на трицепс',
+          group: 'Трицепс',
+          tags: ['изолирующее', 'сила', 'тренажер']
+        },
+        {
+          id: 'rear-delt-fly',
+          name: 'Разводка рук в тренажере-бабочке',
+          group: 'Задние дельты',
+          tags: ['изолирующее', 'сила', 'тренажер']
+        }
+      ];
+
+      // Exercise selection state
+      let selectedExercises = [];
+      let currentFilter = 'all';
+      let currentGroupFilter = null;
+      let searchQuery = '';
+
       // Navigation functionality
       document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', () => {
@@ -895,6 +1195,7 @@
   });
 
   if (pageName === 'welcome') loadWelcomePage();
+  else if (pageName === 'main') loadMainPage();
   else if (pageName === 'history') loadHistoryPage();
   else if (pageName === 'settings') loadSettingsPage();
 
@@ -1867,28 +2168,36 @@ function addSetToAll() {
   document.querySelectorAll('.exercise-block .sets').forEach(container => addSet(container));
 }
 
-// Сбор данных тренировки: учитываем все упражнения в группе
+// Сбор данных тренировки: учитываем выбранные упражнения
 function collectCurrentEntry() {
   const cycle = Number(document.getElementById('cycle').value) || 1;
   const week = Number(document.getElementById('week').value);
   const session = Number(document.getElementById('session').value);
 
-  const exercises = [];
-  groups.forEach(g => {
-    const list = document.getElementById(`group-${g.id}-exercises`);
-    if (!list) return;
-    list.querySelectorAll('.exercise-block').forEach(block => {
-      const name = block.querySelector('.exercise-select')?.value || '';
-      const sets = Array.from(block.querySelectorAll('.set-row')).map(row => {
-        const repsVal = Number(row.querySelector('input.reps').value);
-        const weightVal = Number(row.querySelector('input.weight').value);
-        return {
+  const exercises = selectedExercises.map(exercise => {
+    const setsContainer = document.getElementById(`sets-${exercise.id}`);
+    const sets = [];
+    
+    if (setsContainer) {
+      setsContainer.querySelectorAll('.set-row').forEach(row => {
+        const repsInput = row.querySelector('.reps-input');
+        const weightInput = row.querySelector('.weight-input');
+        
+        const repsVal = Number(repsInput?.value);
+        const weightVal = Number(weightInput?.value);
+        
+        sets.push({
           reps: Number.isFinite(repsVal) ? repsVal : null,
           weight: Number.isFinite(weightVal) ? weightVal : null
-        };
+        });
       });
-      exercises.push({ group: g.name, exercise: name, sets });
-    });
+    }
+    
+    return {
+      group: exercise.group,
+      exercise: exercise.name,
+      sets
+    };
   });
 
   return {
@@ -2246,10 +2555,10 @@ function collectCurrentEntry() {
           
           // Clear form
           cycleEl.value = '';
-          document.querySelectorAll('.exercise-block .sets').forEach(container => {
-            container.innerHTML = '';
-            addSet(container);
-          });
+          selectedExercises = [];
+          renderExerciseGrid();
+          renderSelectedExercises();
+          updateSelectedCounter();
           
         } catch (e) {
           console.error('Save failed:', e);
@@ -2332,6 +2641,225 @@ ensureInitialSetsMulti();
 
 // Initialize welcome page
 loadWelcomePage();
+
+// Exercise selection functions
+function initializeExerciseSelection() {
+  renderExerciseGrid();
+  setupExerciseEventListeners();
+}
+
+function renderExerciseGrid() {
+  const grid = document.getElementById('exerciseGrid');
+  if (!grid) return;
+
+  const filteredExercises = getFilteredExercises();
+  
+  grid.innerHTML = filteredExercises.map(exercise => `
+    <div class="exercise-card ${isExerciseSelected(exercise.id) ? 'selected' : ''}" data-exercise-id="${exercise.id}">
+      <div class="exercise-name">${exercise.name}</div>
+      <div class="exercise-group">${exercise.group}</div>
+      <div class="exercise-tags">
+        ${exercise.tags.map(tag => `<span class="exercise-tag">${tag}</span>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function getFilteredExercises() {
+  let filtered = exercises;
+
+  // Apply search filter
+  if (searchQuery) {
+    filtered = filtered.filter(exercise => 
+      exercise.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      exercise.group.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      exercise.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+  }
+
+  // Apply filter buttons
+  if (currentFilter === 'popular') {
+    filtered = filtered.filter(exercise => exercise.isPopular);
+  } else if (currentFilter === 'recent') {
+    // Get recent exercises from localStorage
+    const recentExercises = JSON.parse(localStorage.getItem('recentExercises') || '[]');
+    filtered = filtered.filter(exercise => recentExercises.includes(exercise.id));
+  }
+
+  // Apply group filter
+  if (currentGroupFilter) {
+    filtered = filtered.filter(exercise => exercise.group === currentGroupFilter);
+  }
+
+  return filtered;
+}
+
+function isExerciseSelected(exerciseId) {
+  return selectedExercises.some(ex => ex.id === exerciseId);
+}
+
+function setupExerciseEventListeners() {
+  // Search input
+  const searchInput = document.getElementById('exerciseSearch');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      renderExerciseGrid();
+    });
+  }
+
+  // Filter buttons
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      currentFilter = e.target.dataset.filter;
+      renderExerciseGrid();
+    });
+  });
+
+  // Group filter buttons
+  document.querySelectorAll('.group-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const group = e.target.dataset.group;
+      if (currentGroupFilter === group) {
+        currentGroupFilter = null;
+        e.target.classList.remove('active');
+      } else {
+        document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentGroupFilter = group;
+      }
+      renderExerciseGrid();
+    });
+  });
+
+  // Exercise cards
+  document.addEventListener('click', (e) => {
+    const card = e.target.closest('.exercise-card');
+    if (card) {
+      const exerciseId = card.dataset.exerciseId;
+      toggleExerciseSelection(exerciseId);
+    }
+  });
+}
+
+function toggleExerciseSelection(exerciseId) {
+  const exercise = exercises.find(ex => ex.id === exerciseId);
+  if (!exercise) return;
+
+  const isSelected = isExerciseSelected(exerciseId);
+  
+  if (isSelected) {
+    // Remove exercise
+    selectedExercises = selectedExercises.filter(ex => ex.id !== exerciseId);
+  } else {
+    // Add exercise (max 8)
+    if (selectedExercises.length >= 8) {
+      showStatus('Максимум 8 упражнений в тренировке', 'error');
+      return;
+    }
+    selectedExercises.push({
+      id: exercise.id,
+      name: exercise.name,
+      group: exercise.group,
+      sets: []
+    });
+    
+    // Add to recent exercises
+    addToRecentExercises(exerciseId);
+  }
+
+  renderExerciseGrid();
+  renderSelectedExercises();
+  updateSelectedCounter();
+}
+
+function addToRecentExercises(exerciseId) {
+  const recent = JSON.parse(localStorage.getItem('recentExercises') || '[]');
+  const updated = [exerciseId, ...recent.filter(id => id !== exerciseId)].slice(0, 10);
+  localStorage.setItem('recentExercises', JSON.stringify(updated));
+}
+
+function renderSelectedExercises() {
+  const container = document.getElementById('selectedExercises');
+  if (!container) return;
+
+  if (selectedExercises.length === 0) {
+    container.innerHTML = '<p style="text-align: center; color: var(--muted);">Выберите упражнения для тренировки</p>';
+    return;
+  }
+
+  container.innerHTML = selectedExercises.map((exercise, index) => `
+    <div class="selected-exercise-item" data-exercise-index="${index}">
+      <div class="selected-exercise-header">
+        <div class="selected-exercise-name">${exercise.name}</div>
+        <button class="remove-exercise-btn" onclick="removeSelectedExercise(${index})">Удалить</button>
+      </div>
+      <div class="selected-exercise-sets" id="sets-${exercise.id}">
+        <!-- Sets will be added here -->
+      </div>
+      <button type="button" class="btn-secondary add-set-btn" data-target="sets-${exercise.id}">Добавить подход</button>
+    </div>
+  `).join('');
+
+  // Reinitialize set buttons
+  document.querySelectorAll('.add-set-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const targetId = e.target.dataset.target;
+      addSetToExercise(targetId);
+    });
+  });
+}
+
+function removeSelectedExercise(index) {
+  selectedExercises.splice(index, 1);
+  renderExerciseGrid();
+  renderSelectedExercises();
+  updateSelectedCounter();
+}
+
+function updateSelectedCounter() {
+  const counter = document.getElementById('selectedCount');
+  if (counter) {
+    counter.textContent = selectedExercises.length;
+  }
+}
+
+function addSetToExercise(targetId) {
+  const setsContainer = document.getElementById(targetId);
+  if (!setsContainer) return;
+
+  const setIndex = setsContainer.children.length;
+  const setHtml = `
+    <div class="set-row">
+      <span class="em-label">Подход ${setIndex + 1}:</span>
+      <div class="pair">
+        <input type="number" placeholder="Повторы" min="1" max="100" class="reps-input" data-set-index="${setIndex}">
+        <input type="number" placeholder="Вес (кг)" min="0" max="500" class="weight-input" data-set-index="${setIndex}">
+      </div>
+      <button type="button" class="remove-set" onclick="removeSet(this)">×</button>
+    </div>
+  `;
+  setsContainer.insertAdjacentHTML('beforeend', setHtml);
+}
+
+function removeSet(button) {
+  button.closest('.set-row').remove();
+  // Renumber remaining sets
+  const container = button.closest('.selected-exercise-sets');
+  container.querySelectorAll('.set-row').forEach((row, index) => {
+    row.querySelector('.em-label').textContent = `Подход ${index + 1}:`;
+    row.querySelectorAll('input').forEach(input => {
+      input.dataset.setIndex = index;
+    });
+  });
+}
+
+// Initialize exercise selection when main page is loaded
+function loadMainPage() {
+  initializeExerciseSelection();
+}
       
       // Test data functions
       function loadTestData() {
