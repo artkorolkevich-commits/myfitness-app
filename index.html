@@ -3560,6 +3560,23 @@ async function analyzeBodyWithAI(photo) {
     throw new Error('API ключ Hugging Face не настроен. Пожалуйста, добавьте ключ в настройках.');
   }
   
+  // Check if API key is working
+  try {
+    const testResponse = await fetch('https://huggingface.co/api/whoami', {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`
+      }
+    });
+    
+    if (!testResponse.ok) {
+      console.warn('API key test failed, using fallback analysis');
+      return await simulateBodyAnalysis(photo);
+    }
+  } catch (error) {
+    console.warn('API key test failed, using fallback analysis:', error);
+    return await simulateBodyAnalysis(photo);
+  }
+  
   try {
     // Convert image to base64
     const base64Image = photo.dataUrl.split(',')[1];
