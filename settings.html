@@ -744,12 +744,17 @@
           showStatus('Тестируем подключение к Replicate...', 'info');
         
           try {
+            // Use a CORS proxy to bypass CORS restrictions
+            const proxyUrl = 'https://api.allorigins.win/raw?url=';
+            const targetUrl = 'https://api.replicate.com/v1/models';
+            
             // Test Replicate API with a simple request
-            const response = await fetch('https://api.replicate.com/v1/models', {
+            const response = await fetch(proxyUrl + targetUrl, {
               method: 'GET',
               headers: {
                 'Authorization': `Token ${replicateKey}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Origin': window.location.origin
               }
             });
             

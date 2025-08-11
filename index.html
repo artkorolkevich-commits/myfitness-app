@@ -2565,13 +2565,18 @@
             replicateKey: replicateKey ? '***' + replicateKey.slice(-4) : 'empty'
           });
           
-          alert('🔄 Тестируем подключение к Replicate...');
+          alert('🔄 Тестируем подключение к Replicate через прокси...');
         
-          const response = await fetch('https://api.replicate.com/v1/models', {
+          // Use a CORS proxy to bypass CORS restrictions
+          const proxyUrl = 'https://api.allorigins.win/raw?url=';
+          const targetUrl = 'https://api.replicate.com/v1/models';
+          
+          const response = await fetch(proxyUrl + targetUrl, {
             method: 'GET',
             headers: {
               'Authorization': `Token ${replicateKey}`,
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Origin': window.location.origin
             }
           });
           
@@ -4261,12 +4266,17 @@ async function analyzeWithReplicate(photo, apiKey) {
     // Convert image to base64
     const base64Image = photo.dataUrl.split(',')[1];
     
+    // Use a CORS proxy to bypass CORS restrictions
+    const proxyUrl = 'https://api.allorigins.win/raw?url=';
+    const targetUrl = REPLICATE_API_URL;
+    
     // Use a body composition analysis model
-    const response = await fetch(REPLICATE_API_URL, {
+    const response = await fetch(proxyUrl + targetUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Token ${apiKey}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Origin': window.location.origin
       },
       body: JSON.stringify({
         version: "c221b2b8ef527988fb59bf24a8b97c2f3c2e9d4b3a6e2c0b8b8b8b8b8b8b8b8b8",
