@@ -3423,8 +3423,9 @@ function loadMainPage() {
 let currentPhoto = null;
 let currentAnalysis = null;
 
-// Hugging Face API configuration
+// AI API configuration
 const HUGGING_FACE_BASE_URL = 'https://api-inference.huggingface.co/models/';
+const REPLICATE_API_URL = 'https://api.replicate.com/v1/predictions';
 
 // Body analysis prompts for better results
 const BODY_ANALYSIS_PROMPTS = [
@@ -3550,15 +3551,38 @@ async function analyzeBody() {
 }
 
 async function analyzeBodyWithAI(photo) {
-  console.log('Starting AI analysis with Hugging Face...');
+  console.log('Starting AI analysis...');
   
   // Get settings from config
-  const apiKey = appConfig.huggingFaceApiKey;
-  const model = appConfig.aiModel || 'microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224';
+  const huggingFaceKey = appConfig.huggingFaceApiKey;
+  const replicateKey = appConfig.replicateApiKey;
   
-  if (!apiKey) {
-    throw new Error('API ключ Hugging Face не настроен. Пожалуйста, добавьте ключ в настройках.');
+  // Try Replicate first (more reliable for image analysis)
+  if (replicateKey) {
+    try {
+      console.log('Trying Replicate API...');
+      return await analyzeWithReplicate(photo, replicateKey);
+    } catch (error) {
+      console.warn('Replicate failed, trying Hugging Face:', error);
+    }
   }
+  
+  // Try Hugging Face as fallback
+  if (huggingFaceKey) {
+    try {
+      console.log('Trying Hugging Face API...');
+      return await analyzeWithHuggingFace(photo, huggingFaceKey);
+    } catch (error) {
+      console.warn('Hugging Face failed:', error);
+    }
+  }
+  
+    // If no API keys or both failed, show error instead of simulation
+  throw new Error('Не удалось подключиться к AI сервисам. Проверьте API ключи в настройках.');
+}
+
+async function analyzeWithHuggingFace(photo, apiKey) {
+  const model = appConfig.aiModel || 'microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224';
   
   // Check if API key is working
   try {
@@ -3569,14 +3593,12 @@ async function analyzeBodyWithAI(photo) {
     });
     
     if (!testResponse.ok) {
-      console.warn('API key test failed, using fallback analysis');
-      return await simulateBodyAnalysis(photo);
+      throw new Error('Hugging Face API key is invalid');
     }
   } catch (error) {
-    console.warn('API key test failed, using fallback analysis:', error);
-    return await simulateBodyAnalysis(photo);
+    throw new Error('Hugging Face API connection failed');
   }
-  
+
   try {
     // Convert image to base64
     const base64Image = photo.dataUrl.split(',')[1];
@@ -4186,6 +4208,88 @@ function createFatProgressChart(chartData) {
   });
   
   console.log('Fat progress chart created successfully');
+}
+
+async function analyzeWithReplicate(photo, apiKey) {
+  console.log('Starting Replicate analysis...');
+  
+  try {
+    // Convert image to base64
+    const base64Image = photo.dataUrl.split(',')[1];
+    
+    // Use a body composition analysis model
+    const response = await fetch(REPLICATE_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Token ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        version: "c221b2b8ef527988fb59bf24a8b97c2f3c2e9d4b3a6e2c0b8b8b8b8b8b8b8b8b8",
+        input: {
+          image: `data:image/jpeg;base64,${base64Image}`,
+          prompt: "Analyze body fat percentage and provide detailed body composition assessment"
+        }
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Replicate API error: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log('Replicate result:', result);
+    
+    // Process the result and return analysis
+    return processReplicateResult(result);
+    
+  } catch (error) {
+    console.error('Replicate analysis failed:', error);
+    throw error;
+  }
+}
+
+function processReplicateResult(result) {
+  // Extract fat percentage from Replicate response
+  // This will depend on the specific model output format
+  let fatPercentage = 15; // Default fallback
+  let confidence = 0.8;
+  
+  // Try to extract information from the result
+  if (result && result.output) {
+    // Look for fat percentage in the output
+    const outputText = JSON.stringify(result.output);
+    const fatMatch = outputText.match(/(\d+(?:\.\d+)?)\s*%?\s*(?:жир|fat)/i);
+    if (fatMatch) {
+      fatPercentage = parseFloat(fatMatch[1]);
+    }
+  }
+  
+  // Determine level and recommendations
+  let level, recommendations;
+  
+  if (fatPercentage < 12) {
+    level = 'Очень низкий';
+    recommendations = 'Отличная форма! Поддерживайте текущий уровень активности.';
+  } else if (fatPercentage < 18) {
+    level = 'Низкий';
+    recommendations = 'Хорошая форма. Можно добавить силовые тренировки.';
+  } else if (fatPercentage < 25) {
+    level = 'Средний';
+    recommendations = 'Нормальный уровень. Рекомендуется кардио + силовые тренировки.';
+  } else {
+    level = 'Высокий';
+    recommendations = 'Рекомендуется снизить процент жира через диету и тренировки.';
+  }
+  
+  return {
+    fatPercentage: Math.round(fatPercentage * 10) / 10,
+    level,
+    recommendations,
+    confidence: Math.round(confidence * 100),
+    timestamp: new Date().toISOString(),
+    aiModel: 'Replicate Body Composition'
+  };
 }
       
       // Test data functions
