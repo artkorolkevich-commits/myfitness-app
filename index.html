@@ -489,6 +489,151 @@
         flex-direction: column;
         gap: 6px;
       }
+
+      /* Body Analysis Styles */
+      .body-analysis-form {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .analysis-description {
+        color: var(--muted);
+        margin-bottom: 24px;
+        text-align: center;
+      }
+
+      .photo-upload-section {
+        margin-bottom: 24px;
+      }
+
+      .upload-area {
+        border: 2px dashed rgba(148,163,184,0.3);
+        border-radius: 12px;
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: rgba(148,163,184,0.02);
+      }
+
+      .upload-area:hover {
+        border-color: var(--accent);
+        background: rgba(34,197,94,0.05);
+      }
+
+      .upload-area.dragover {
+        border-color: var(--accent);
+        background: rgba(34,197,94,0.1);
+      }
+
+      .upload-icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+        color: var(--muted);
+      }
+
+      .upload-text {
+        color: var(--muted);
+        font-size: 16px;
+      }
+
+      .photo-preview {
+        text-align: center;
+        margin-top: 16px;
+      }
+
+      .photo-preview img {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 8px;
+        border: 1px solid rgba(148,163,184,0.2);
+      }
+
+      .retake-btn {
+        margin-top: 12px;
+        background: rgba(239,68,68,0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239,68,68,0.3);
+        border-radius: 6px;
+        padding: 8px 16px;
+        cursor: pointer;
+      }
+
+      .analysis-controls {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+      }
+
+      .analysis-results {
+        background: rgba(34,197,94,0.05);
+        border: 1px solid rgba(34,197,94,0.2);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+      }
+
+      .analysis-results h4 {
+        margin-bottom: 16px;
+        color: var(--accent);
+      }
+
+      .result-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(148,163,184,0.1);
+      }
+
+      .result-item:last-child {
+        border-bottom: none;
+      }
+
+      .result-label {
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .result-value {
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      .analysis-history {
+        background: rgba(148,163,184,0.02);
+        border: 1px solid rgba(148,163,184,0.1);
+        border-radius: 12px;
+        padding: 20px;
+      }
+
+      .analysis-history h4 {
+        margin-bottom: 16px;
+        color: var(--text);
+      }
+
+      .history-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        background: rgba(255,255,255,0.02);
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+
+      .history-date {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .history-fat {
+        color: var(--accent);
+        font-weight: 600;
+      }
       
       /* Responsive */
       @media (max-width: 768px) {
@@ -850,6 +995,10 @@
             <div class="nav-icon">📊</div>
             <div class="nav-text">История</div>
           </div>
+          <div class="nav-item" data-page="body-analysis">
+            <div class="nav-icon">📸</div>
+            <div class="nav-text">Анализ тела</div>
+          </div>
           <div class="nav-item" data-page="settings">
             <div class="nav-icon">⚙️</div>
             <div class="nav-text">Настройки</div>
@@ -1022,6 +1171,69 @@
           <div class="content-body">
             <div id="history-content">
               <!-- History content will be loaded here -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- Body Analysis Page Content -->
+        <div id="body-analysis-page" class="page-content" style="display: none;">
+          
+          <div class="content-body">
+            <div class="body-analysis-form">
+              <h3>Анализ состава тела</h3>
+              <p class="analysis-description">
+                Сделайте фото для оценки процента жира в организме. 
+                Для лучших результатов используйте хорошее освещение и фото в полный рост.
+              </p>
+              
+              <!-- Photo Upload Section -->
+              <div class="photo-upload-section">
+                <div class="upload-area" id="uploadArea">
+                  <div class="upload-icon">📸</div>
+                  <div class="upload-text">Нажмите для выбора фото или перетащите файл</div>
+                  <input type="file" id="photoInput" accept="image/*" capture="environment" style="display: none;">
+                </div>
+                
+                <div class="photo-preview" id="photoPreview" style="display: none;">
+                  <img id="previewImage" src="" alt="Preview">
+                  <button class="retake-btn" onclick="retakePhoto()">Переснять</button>
+                </div>
+              </div>
+              
+              <!-- Analysis Controls -->
+              <div class="analysis-controls">
+                <button id="analyzeBtn" class="btn-primary" onclick="analyzeBody()" disabled>
+                  🔍 Анализировать фото
+                </button>
+                <button id="saveBtn" class="btn-secondary" onclick="saveAnalysis()" disabled>
+                  💾 Сохранить результат
+                </button>
+              </div>
+              
+              <!-- Analysis Results -->
+              <div class="analysis-results" id="analysisResults" style="display: none;">
+                <h4>Результаты анализа</h4>
+                <div class="result-item">
+                  <span class="result-label">Процент жира:</span>
+                  <span class="result-value" id="fatPercentage">-</span>
+                </div>
+                <div class="result-item">
+                  <span class="result-label">Уровень:</span>
+                  <span class="result-value" id="fatLevel">-</span>
+                </div>
+                <div class="result-item">
+                  <span class="result-label">Рекомендации:</span>
+                  <span class="result-value" id="recommendations">-</span>
+                </div>
+              </div>
+              
+              <!-- Analysis History -->
+              <div class="analysis-history">
+                <h4>История измерений</h4>
+                <div id="analysisHistory">
+                  <!-- History will be loaded here -->
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1251,6 +1463,7 @@
   if (pageName === 'welcome') loadWelcomePage();
   else if (pageName === 'main') loadMainPage();
   else if (pageName === 'history') loadHistoryPage();
+  else if (pageName === 'body-analysis') loadBodyAnalysisPage();
   else if (pageName === 'settings') loadSettingsPage();
 
 
@@ -2913,6 +3126,276 @@ function removeSet(button) {
 // Initialize exercise selection when main page is loaded
 function loadMainPage() {
   initializeExerciseSelection();
+}
+
+// Body Analysis Functions
+let currentPhoto = null;
+let currentAnalysis = null;
+
+function loadBodyAnalysisPage() {
+  setupPhotoUpload();
+  loadAnalysisHistory();
+}
+
+function setupPhotoUpload() {
+  const uploadArea = document.getElementById('uploadArea');
+  const photoInput = document.getElementById('photoInput');
+
+  // Click to upload
+  uploadArea.addEventListener('click', () => {
+    photoInput.click();
+  });
+
+  // File selection
+  photoInput.addEventListener('change', handlePhotoSelect);
+
+  // Drag and drop
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+  });
+
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+  });
+
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handlePhotoFile(files[0]);
+    }
+  });
+}
+
+function handlePhotoSelect(e) {
+  const file = e.target.files[0];
+  if (file) {
+    handlePhotoFile(file);
+  }
+}
+
+function handlePhotoFile(file) {
+  if (!file.type.startsWith('image/')) {
+    showStatus('Пожалуйста, выберите изображение', 'error');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    currentPhoto = {
+      file: file,
+      dataUrl: e.target.result
+    };
+    showPhotoPreview(e.target.result);
+    document.getElementById('analyzeBtn').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+function showPhotoPreview(dataUrl) {
+  document.getElementById('uploadArea').style.display = 'none';
+  document.getElementById('photoPreview').style.display = 'block';
+  document.getElementById('previewImage').src = dataUrl;
+}
+
+function retakePhoto() {
+  currentPhoto = null;
+  document.getElementById('uploadArea').style.display = 'block';
+  document.getElementById('photoPreview').style.display = 'none';
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('saveBtn').disabled = true;
+  document.getElementById('analysisResults').style.display = 'none';
+}
+
+async function analyzeBody() {
+  if (!currentPhoto) return;
+
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  analyzeBtn.disabled = true;
+  analyzeBtn.textContent = 'Анализируем...';
+
+  try {
+    // Simulate AI analysis (replace with real API call)
+    const analysis = await simulateBodyAnalysis(currentPhoto);
+    currentAnalysis = analysis;
+    
+    showAnalysisResults(analysis);
+    document.getElementById('saveBtn').disabled = false;
+    
+  } catch (error) {
+    showStatus('Ошибка анализа: ' + error.message, 'error');
+  } finally {
+    analyzeBtn.disabled = false;
+    analyzeBtn.textContent = '🔍 Анализировать фото';
+  }
+}
+
+async function simulateBodyAnalysis(photo) {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  // Generate random fat percentage (replace with real AI analysis)
+  const fatPercentage = Math.round((Math.random() * 20 + 8) * 10) / 10; // 8-28%
+  
+  let level, recommendations;
+  
+  if (fatPercentage < 12) {
+    level = 'Очень низкий';
+    recommendations = 'Отличная форма! Поддерживайте текущий уровень активности.';
+  } else if (fatPercentage < 18) {
+    level = 'Низкий';
+    recommendations = 'Хорошая форма. Можно добавить силовые тренировки.';
+  } else if (fatPercentage < 25) {
+    level = 'Средний';
+    recommendations = 'Нормальный уровень. Рекомендуется кардио + силовые тренировки.';
+  } else {
+    level = 'Высокий';
+    recommendations = 'Рекомендуется снизить процент жира через диету и тренировки.';
+  }
+  
+  return {
+    fatPercentage,
+    level,
+    recommendations,
+    timestamp: new Date().toISOString()
+  };
+}
+
+function showAnalysisResults(analysis) {
+  document.getElementById('fatPercentage').textContent = analysis.fatPercentage + '%';
+  document.getElementById('fatLevel').textContent = analysis.level;
+  document.getElementById('recommendations').textContent = analysis.recommendations;
+  document.getElementById('analysisResults').style.display = 'block';
+}
+
+async function saveAnalysis() {
+  if (!currentAnalysis || !currentPhoto) return;
+
+  try {
+    // Save to Yandex.Disk
+    await savePhotoToYandex(currentPhoto);
+    await saveAnalysisToYandex(currentAnalysis);
+    
+    // Save to localStorage
+    saveAnalysisToLocal(currentAnalysis);
+    
+    showStatus('Анализ сохранен!', 'success');
+    loadAnalysisHistory();
+    
+  } catch (error) {
+    showStatus('Ошибка сохранения: ' + error.message, 'error');
+  }
+}
+
+async function savePhotoToYandex(photo) {
+  if (!appConfig.yandexToken) {
+    throw new Error('Необходима авторизация в Яндекс.Диске');
+  }
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const photoPath = `/MyFitness/photos/${timestamp}.jpg`;
+  
+  // Convert base64 to blob
+  const response = await fetch(photo.dataUrl);
+  const blob = await response.blob();
+  
+  // Upload to Yandex.Disk
+  const uploadResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/upload?path=${encodeURIComponent(photoPath)}`, {
+    headers: { 'Authorization': `OAuth ${appConfig.yandexToken}` }
+  });
+  
+  if (!uploadResp.ok) {
+    throw new Error('Ошибка загрузки фото');
+  }
+  
+  const { href } = await uploadResp.json();
+  await fetch(href, {
+    method: 'PUT',
+    body: blob
+  });
+}
+
+async function saveAnalysisToYandex(analysis) {
+  if (!appConfig.yandexToken) return;
+
+  const analysisPath = `/MyFitness/body_analysis.json`;
+  
+  // Load existing analyses
+  let analyses = [];
+  try {
+    const checkResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources?path=${encodeURIComponent(analysisPath)}`, {
+      headers: { 'Authorization': `OAuth ${appConfig.yandexToken}` }
+    });
+    
+    if (checkResp.ok) {
+      const downloadResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/download?path=${encodeURIComponent(analysisPath)}`, {
+        headers: { 'Authorization': `OAuth ${appConfig.yandexToken}` }
+      });
+      
+      if (downloadResp.ok) {
+        const { href } = await downloadResp.json();
+        const response = await fetch(href);
+        analyses = await response.json();
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to load existing analyses:', e);
+  }
+  
+  // Add new analysis
+  analyses.push(analysis);
+  
+  // Save back to Yandex.Disk
+  const uploadResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/upload?path=${encodeURIComponent(analysisPath)}&overwrite=true`, {
+    headers: { 'Authorization': `OAuth ${appConfig.yandexToken}` }
+  });
+  
+  if (uploadResp.ok) {
+    const { href } = await uploadResp.json();
+    await fetch(href, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(analyses, null, 2)
+    });
+  }
+}
+
+function saveAnalysisToLocal(analysis) {
+  const analyses = JSON.parse(localStorage.getItem('bodyAnalyses') || '[]');
+  analyses.push(analysis);
+  localStorage.setItem('bodyAnalyses', JSON.stringify(analyses));
+}
+
+function loadAnalysisHistory() {
+  const analyses = JSON.parse(localStorage.getItem('bodyAnalyses') || '[]');
+  const historyContainer = document.getElementById('analysisHistory');
+  
+  if (analyses.length === 0) {
+    historyContainer.innerHTML = '<p style="text-align: center; color: var(--muted);">История измерений пуста</p>';
+    return;
+  }
+  
+  const recentAnalyses = analyses.slice(-5).reverse(); // Last 5, newest first
+  
+  historyContainer.innerHTML = recentAnalyses.map(analysis => {
+    const date = new Date(analysis.timestamp);
+    const formattedDate = date.toLocaleDateString('ru-RU', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    return `
+      <div class="history-item">
+        <div class="history-date">${formattedDate}</div>
+        <div class="history-fat">${analysis.fatPercentage}% жира</div>
+      </div>
+    `;
+  }).join('');
 }
       
       // Test data functions
