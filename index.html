@@ -704,6 +704,11 @@
                 <button class="btn-primary" onclick="showPage('main')" style="padding: 12px 24px; font-size: 16px;">
                   🏋️ Начать тренировку
                 </button>
+                <div style="margin-top: 16px;">
+                  <button onclick="location.reload(true)" style="padding: 8px 16px; background: var(--muted); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                    🔄 Обновить кэш
+                  </button>
+                </div>
               </div>
               
               <!-- Test data section (only visible in development) -->
@@ -970,7 +975,7 @@
         `;
         
         try {
-          const response = await fetch(`./history.html?v=${Date.now()}`);
+          const response = await fetch(`./history.html?v=${Date.now()}&cache=${Math.random()}`);
           const html = await response.text();
           
           // Extract body content
@@ -1713,6 +1718,8 @@ function collectCurrentEntry() {
       async function syncWorkoutsToYandex(optionalWorkouts) {
         const token = appConfig.yandexToken?.trim();
         const path = appConfig.yandexPath?.trim() || '/MyFitness/workouts.json';
+        console.log('Sync path:', path);
+        console.log('App config:', appConfig);
         if (!token || !path) {
           showStatus('Укажите OAuth токен и путь в настройках', 'error');
           return false;
