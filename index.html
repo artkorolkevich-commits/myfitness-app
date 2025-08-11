@@ -2175,6 +2175,7 @@
           theme: 'dark',
           userInfo: null,
           huggingFaceApiKey: '',
+          replicateApiKey: '',
           aiModel: 'microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224'
         };
         
@@ -2198,6 +2199,7 @@
             const defaultCycle = parseInt(document.getElementById('defaultCycle')?.value);
             const theme = document.getElementById('theme')?.value;
             const huggingFaceApiKey = document.getElementById('huggingFaceApiKey')?.value;
+            const replicateApiKey = document.getElementById('replicateApiKey')?.value;
             const aiModel = document.getElementById('aiModel')?.value;
             
             if (yandexPath !== undefined) config.yandexPath = yandexPath;
@@ -2206,6 +2208,7 @@
             if (defaultCycle) config.defaultCycle = defaultCycle;
             if (theme) config.theme = theme;
             if (huggingFaceApiKey !== undefined) config.huggingFaceApiKey = huggingFaceApiKey;
+            if (replicateApiKey !== undefined) config.replicateApiKey = replicateApiKey;
             if (aiModel) config.aiModel = aiModel;
             
             localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
@@ -2223,6 +2226,7 @@
           const defaultCycle = document.getElementById('defaultCycle');
           const theme = document.getElementById('theme');
           const huggingFaceApiKey = document.getElementById('huggingFaceApiKey');
+          const replicateApiKey = document.getElementById('replicateApiKey');
           const aiModel = document.getElementById('aiModel');
           
           if (yandexPath) yandexPath.value = config.yandexPath;
@@ -2231,6 +2235,7 @@
           if (defaultCycle) defaultCycle.value = config.defaultCycle;
           if (theme) theme.value = config.theme;
           if (huggingFaceApiKey) huggingFaceApiKey.value = config.huggingFaceApiKey || '';
+          if (replicateApiKey) replicateApiKey.value = config.replicateApiKey || '';
           if (aiModel) aiModel.value = config.aiModel || 'microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224';
           
           updateAuthStatus();
