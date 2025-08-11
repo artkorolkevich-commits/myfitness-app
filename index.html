@@ -2341,22 +2341,54 @@
               return;
             }
             showStatus('Тестируем подключение к AI...', 'info');
+            
+            // Test with a simple text input instead of image
+            let requestBody;
+            
+            // Different models expect different input formats
+            if (model.includes('BiomedCLIP')) {
+              // BiomedCLIP can work with text-only input for testing
+              requestBody = {
+                inputs: "body fat percentage estimation"
+              };
+            } else if (model.includes('detr') || model.includes('resnet')) {
+              // These models need image input, so we'll test with a simple text query
+              requestBody = {
+                inputs: "test"
+              };
+            } else {
+              // Default fallback
+              requestBody = {
+                inputs: "body fat percentage estimation"
+              };
+            }
+            
+            console.log('Testing with model:', model);
+            console.log('Test request body:', requestBody);
+            
             const resp = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json'
               },
-              body: JSON.stringify({ inputs: 'test connection' })
+              body: JSON.stringify(requestBody)
             });
+            
+            console.log('AI test response status:', resp.status);
+            
             if (resp.ok) {
+              const result = await resp.json();
+              console.log('AI test response:', result);
               showStatus('Подключение к AI успешно!', 'success');
             } else {
-              showStatus(`Ошибка подключения: ${resp.status}`, 'error');
+              const errorText = await resp.text();
+              console.error('AI test error response:', errorText);
+              showStatus(`Ошибка подключения: ${resp.status} - ${resp.statusText}`, 'error');
             }
           } catch (err) {
-            console.warn('AI connection test failed:', err);
-            showStatus('Ошибка подключения к AI сервису', 'error');
+            console.error('AI connection test failed:', err);
+            showStatus('Ошибка подключения к AI сервису: ' + err.message, 'error');
           }
         }
         
@@ -3467,20 +3499,25 @@ async function analyzeBodyWithAI(photo) {
     // Convert image to base64
     const base64Image = photo.dataUrl.split(',')[1];
     
-    // Prepare the request
+    // Prepare the request - BiomedCLIP expects different format
     const apiUrl = HUGGING_FACE_BASE_URL + model;
+    const requestBody = {
+      inputs: {
+        image: base64Image,
+        text: BODY_ANALYSIS_PROMPTS.join(', ')
+      }
+    };
+    
+    console.log('Sending request to:', apiUrl);
+    console.log('Request body keys:', Object.keys(requestBody.inputs));
+    
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        inputs: {
-          image: base64Image,
-          text: BODY_ANALYSIS_PROMPTS.join(', ')
-        }
-      })
+      body: JSON.stringify(requestBody)
     });
     
     if (!response.ok) {
