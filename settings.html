@@ -418,8 +418,8 @@
         
         <div class="action-buttons">
           <button class="btn btn-primary" id="saveAiSettings">Сохранить AI настройки</button>
-          <button class="btn btn-secondary" id="testHuggingFaceConnection">Тест Hugging Face</button>
-          <button class="btn btn-secondary" id="testReplicateConnection">Тест Replicate</button>
+          <button class="btn btn-secondary" id="testHuggingFaceConnection" onclick="console.log('Hugging Face button clicked directly'); testHuggingFaceConnection();">Тест Hugging Face</button>
+          <button class="btn btn-secondary" id="testReplicateConnection" onclick="console.log('Replicate button clicked directly'); testReplicateConnection();">Тест Replicate</button>
         </div>
       </div>
       
@@ -772,6 +772,8 @@
       console.log('Setting up settings page event listeners...');
       
       function setupEventListeners() {
+        console.log('setupEventListeners called');
+        
         const loginBtn = document.getElementById('loginBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         const syncNowBtn = document.getElementById('syncNow');
@@ -781,6 +783,18 @@
         const saveAiSettingsBtn = document.getElementById('saveAiSettings');
         const testHuggingFaceBtn = document.getElementById('testHuggingFaceConnection');
         const testReplicateBtn = document.getElementById('testReplicateConnection');
+        
+        console.log('All buttons found:', {
+          loginBtn: !!loginBtn,
+          logoutBtn: !!logoutBtn,
+          syncNowBtn: !!syncNowBtn,
+          exportDataBtn: !!exportDataBtn,
+          importDataBtn: !!importDataBtn,
+          clearDataBtn: !!clearDataBtn,
+          saveAiSettingsBtn: !!saveAiSettingsBtn,
+          testHuggingFaceBtn: !!testHuggingFaceBtn,
+          testReplicateBtn: !!testReplicateBtn
+        });
         
         console.log('Found elements:', {
           loginBtn: !!loginBtn,
@@ -833,8 +847,10 @@
       });
       
       // Initialize
+      console.log('Settings page initialization started');
       loadConfig();
       setupEventListeners();
+      console.log('Settings page initialization completed');
     </script>
     <script>
 if ('serviceWorker' in navigator) {
