@@ -1127,12 +1127,9 @@
                 <button onclick="clearCacheAndReload()" style="padding: 8px 16px; background: var(--muted); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
                   🔄 Обновить кэш
                 </button>
-                <button onclick="testHuggingFaceToken()" style="margin-left: 8px; padding: 8px 16px; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
-                  🧪 Тест Hugging Face
-                </button>
-                <button onclick="testReplicateConnection()" style="margin-left: 8px; padding: 8px 16px; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
-                  🧪 Тест Replicate
-                </button>
+                        <button onclick="testHuggingFaceToken()" style="margin-left: 8px; padding: 8px 16px; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+          🧪 Тест Hugging Face
+        </button>
               </div>
               </div>
               
@@ -2178,7 +2175,6 @@
           theme: 'dark',
           userInfo: null,
           huggingFaceApiKey: '',
-          replicateApiKey: '',
           aiModel: 'microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224'
         };
         
@@ -2202,7 +2198,6 @@
             const defaultCycle = parseInt(document.getElementById('defaultCycle')?.value);
             const theme = document.getElementById('theme')?.value;
             const huggingFaceApiKey = document.getElementById('huggingFaceApiKey')?.value;
-            const replicateApiKey = document.getElementById('replicateApiKey')?.value;
             const aiModel = document.getElementById('aiModel')?.value;
             
             if (yandexPath !== undefined) config.yandexPath = yandexPath;
@@ -2211,7 +2206,6 @@
             if (defaultCycle) config.defaultCycle = defaultCycle;
             if (theme) config.theme = theme;
             if (huggingFaceApiKey !== undefined) config.huggingFaceApiKey = huggingFaceApiKey;
-            if (replicateApiKey !== undefined) config.replicateApiKey = replicateApiKey;
             if (aiModel) config.aiModel = aiModel;
             
             localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
@@ -2229,7 +2223,6 @@
           const defaultCycle = document.getElementById('defaultCycle');
           const theme = document.getElementById('theme');
           const huggingFaceApiKey = document.getElementById('huggingFaceApiKey');
-          const replicateApiKey = document.getElementById('replicateApiKey');
           const aiModel = document.getElementById('aiModel');
           
           if (yandexPath) yandexPath.value = config.yandexPath;
@@ -2238,7 +2231,6 @@
           if (defaultCycle) defaultCycle.value = config.defaultCycle;
           if (theme) theme.value = config.theme;
           if (huggingFaceApiKey) huggingFaceApiKey.value = config.huggingFaceApiKey || '';
-          if (replicateApiKey) replicateApiKey.value = config.replicateApiKey || '';
           if (aiModel) aiModel.value = config.aiModel || 'microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224';
           
           updateAuthStatus();
@@ -2550,41 +2542,7 @@
         }
       }
       
-      // Test Replicate connection function
-      async function testReplicateConnection() {
-        console.log('testReplicateConnection called from index.html');
-        try {
-          const replicateKey = appConfig.replicateApiKey;
-          
-          if (!replicateKey) {
-            alert('❌ API ключ Replicate не найден. Добавьте его в настройках.');
-            return;
-          }
-          
-          console.log('Testing Replicate API key format:', {
-            replicateKey: replicateKey ? '***' + replicateKey.slice(-4) : 'empty',
-            length: replicateKey.length,
-            startsWithR8: replicateKey.startsWith('r8_')
-          });
-          
-          // Validate Replicate API key format
-          if (!replicateKey.startsWith('r8_')) {
-            alert('❌ Неверный формат API ключа Replicate. Ключ должен начинаться с "r8_"');
-            return;
-          }
-          
-          if (replicateKey.length < 40) {
-            alert('❌ API ключ Replicate слишком короткий. Проверьте правильность ключа.');
-            return;
-          }
-          
-          alert('✅ Формат API ключа Replicate корректен!\n\n⚠️ Примечание: Из-за CORS ограничений реальное тестирование API недоступно в браузере.\n\nДля полного тестирования:\n1. Используйте Hugging Face API\n2. Или запустите приложение локально\n3. Или протестируйте анализ тела напрямую');
-          
-        } catch (error) {
-          console.error('Replicate connection test failed:', error);
-          alert(`❌ Ошибка проверки API ключа: ${error.message}`);
-        }
-      }
+
 
       // Initialize main page functionality
       const CONFIG_KEY = 'myfitness_config';
@@ -3469,7 +3427,6 @@ let currentAnalysis = null;
 
 // AI API configuration
 const HUGGING_FACE_BASE_URL = 'https://api-inference.huggingface.co/models/';
-const REPLICATE_API_URL = 'https://api.replicate.com/v1/predictions';
 
 // Body analysis prompts for better results
 const BODY_ANALYSIS_PROMPTS = [
@@ -3599,30 +3556,20 @@ async function analyzeBodyWithAI(photo) {
   
   // Get settings from config
   const huggingFaceKey = appConfig.huggingFaceApiKey;
-  const replicateKey = appConfig.replicateApiKey;
   
-  // Try Replicate first (more reliable for image analysis)
-  if (replicateKey) {
-    try {
-      console.log('Trying Replicate API...');
-      return await analyzeWithReplicate(photo, replicateKey);
-    } catch (error) {
-      console.warn('Replicate failed, trying Hugging Face:', error);
-    }
-  }
-  
-  // Try Hugging Face as fallback
+  // Try Hugging Face API
   if (huggingFaceKey) {
     try {
       console.log('Trying Hugging Face API...');
       return await analyzeWithHuggingFace(photo, huggingFaceKey);
     } catch (error) {
       console.warn('Hugging Face failed:', error);
+      throw error;
     }
   }
   
-    // If no API keys or both failed, show error instead of simulation
-  throw new Error('Не удалось подключиться к AI сервисам. Проверьте API ключи в настройках.');
+  // If no API key, show error
+  throw new Error('API ключ Hugging Face не найден. Добавьте его в настройках.');
 }
 
 async function analyzeWithHuggingFace(photo, apiKey) {
@@ -4254,97 +4201,9 @@ function createFatProgressChart(chartData) {
   console.log('Fat progress chart created successfully');
 }
 
-      async function analyzeWithReplicate(photo, apiKey) {
-        console.log('Starting Replicate analysis...');
-        
-        try {
-          // Check if we're in a browser environment with CORS restrictions
-          if (window.location.hostname === 'artkorolkevich-commits.github.io') {
-            throw new Error('CORS ограничения не позволяют использовать Replicate API в браузере. Попробуйте Hugging Face API или запустите приложение локально.');
-          }
-          
-          // Convert image to base64
-          const base64Image = photo.dataUrl.split(',')[1];
-          
-          // Use a CORS proxy to bypass CORS restrictions
-          const proxyUrl = 'https://api.allorigins.win/raw?url=';
-          const targetUrl = REPLICATE_API_URL;
-          
-          // Use a body composition analysis model
-          const response = await fetch(proxyUrl + targetUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Token ${apiKey}`,
-              'Content-Type': 'application/json',
-              'Origin': window.location.origin
-            },
-            body: JSON.stringify({
-              version: "c221b2b8ef527988fb59bf24a8b97c2f3c2e9d4b3a6e2c0b8b8b8b8b8b8b8b8b8",
-              input: {
-                image: `data:image/jpeg;base64,${base64Image}`,
-                prompt: "Analyze body fat percentage and provide detailed body composition assessment"
-              }
-            })
-          });
-          
-          if (!response.ok) {
-            throw new Error(`Replicate API error: ${response.status}`);
-          }
-          
-          const result = await response.json();
-          console.log('Replicate result:', result);
-          
-          // Process the result and return analysis
-          return processReplicateResult(result);
-          
-        } catch (error) {
-          console.error('Replicate analysis failed:', error);
-          throw error;
-        }
-      }
+      
 
-function processReplicateResult(result) {
-  // Extract fat percentage from Replicate response
-  // This will depend on the specific model output format
-  let fatPercentage = 15; // Default fallback
-  let confidence = 0.8;
-  
-  // Try to extract information from the result
-  if (result && result.output) {
-    // Look for fat percentage in the output
-    const outputText = JSON.stringify(result.output);
-    const fatMatch = outputText.match(/(\d+(?:\.\d+)?)\s*%?\s*(?:жир|fat)/i);
-    if (fatMatch) {
-      fatPercentage = parseFloat(fatMatch[1]);
-    }
-  }
-  
-  // Determine level and recommendations
-  let level, recommendations;
-  
-  if (fatPercentage < 12) {
-    level = 'Очень низкий';
-    recommendations = 'Отличная форма! Поддерживайте текущий уровень активности.';
-  } else if (fatPercentage < 18) {
-    level = 'Низкий';
-    recommendations = 'Хорошая форма. Можно добавить силовые тренировки.';
-  } else if (fatPercentage < 25) {
-    level = 'Средний';
-    recommendations = 'Нормальный уровень. Рекомендуется кардио + силовые тренировки.';
-  } else {
-    level = 'Высокий';
-    recommendations = 'Рекомендуется снизить процент жира через диету и тренировки.';
-  }
-  
-  return {
-    fatPercentage: Math.round(fatPercentage * 10) / 10,
-    level,
-    recommendations,
-    confidence: Math.round(confidence * 100),
-    timestamp: new Date().toISOString(),
-    aiModel: 'Replicate Body Composition'
-  };
-}
+
       
       // Test data functions
       function loadTestData() {
