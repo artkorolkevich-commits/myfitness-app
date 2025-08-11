@@ -3314,41 +3314,32 @@ async function saveAnalysis() {
   try {
     console.log('Starting save process...');
     
-    // Check if user is authorized
-    if (!appConfig.yandexToken) {
-      console.log('No Yandex token, saving only to localStorage');
-      saveAnalysisToLocal(currentAnalysis);
-      showAnalysisStatus('Анализ сохранен локально. Для синхронизации войдите в Яндекс.Диск в настройках.', 'info');
-      loadAnalysisHistory();
-      return;
-    }
-    
-    // Save to localStorage first (always)
+    // Always save to localStorage first
     console.log('Saving to localStorage...');
     saveAnalysisToLocal(currentAnalysis);
     console.log('localStorage saved successfully');
     
-    // Try to save to Yandex.Disk
+    // Try to save analysis results to Yandex.Disk (without photo)
     let yandexSaved = false;
-    try {
-      console.log('Saving photo to Yandex.Disk...');
-      await savePhotoToYandex(currentPhoto);
-      console.log('Photo saved successfully');
-      
-      console.log('Saving analysis to Yandex.Disk...');
-      await saveAnalysisToYandex(currentAnalysis);
-      console.log('Analysis saved successfully');
-      
-      yandexSaved = true;
-    } catch (yandexError) {
-      console.warn('Yandex.Disk save failed:', yandexError);
-      // Continue with localStorage only
+    if (appConfig.yandexToken) {
+      try {
+        console.log('Saving analysis to Yandex.Disk...');
+        await saveAnalysisToYandex(currentAnalysis);
+        console.log('Analysis saved to Yandex.Disk successfully');
+        yandexSaved = true;
+      } catch (yandexError) {
+        console.warn('Yandex.Disk save failed:', yandexError);
+      }
+    } else {
+      console.log('No Yandex token available');
     }
     
     if (yandexSaved) {
       showAnalysisStatus('Анализ сохранен в Яндекс.Диск и локально!', 'success');
+    } else if (appConfig.yandexToken) {
+      showAnalysisStatus('Анализ сохранен локально. Ошибка синхронизации с Яндекс.Диском.', 'info');
     } else {
-      showAnalysisStatus('Анализ сохранен локально. Ошибка загрузки в Яндекс.Диск.', 'info');
+      showAnalysisStatus('Анализ сохранен локально. Для синхронизации войдите в Яндекс.Диск в настройках.', 'info');
     }
     
     loadAnalysisHistory();
@@ -3422,47 +3413,82 @@ async function savePhotoToYandex(photo) {
 }
 
 async function saveAnalysisToYandex(analysis) {
-  if (!appConfig.yandexToken) return;
-
-  const analysisPath = `/MyFitness/body_analysis.json`;
+  console.log('saveAnalysisToYandex called');
   
-  // Load existing analyses
-  let analyses = [];
+  if (!appConfig.yandexToken) {
+    console.log('No Yandex token available');
+    return;
+  }
+
   try {
-    const checkResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources?path=${encodeURIComponent(analysisPath)}`, {
-      headers: { 'Authorization': `OAuth ${appConfig.yandexToken}` }
-    });
+    const analysisPath = `/MyFitness/body_analysis.json`;
+    console.log('Analysis path:', analysisPath);
     
-    if (checkResp.ok) {
-      const downloadResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/download?path=${encodeURIComponent(analysisPath)}`, {
+    // Load existing analyses
+    let analyses = [];
+    try {
+      console.log('Checking if analysis file exists...');
+      const checkResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources?path=${encodeURIComponent(analysisPath)}`, {
         headers: { 'Authorization': `OAuth ${appConfig.yandexToken}` }
       });
       
-      if (downloadResp.ok) {
-        const { href } = await downloadResp.json();
-        const response = await fetch(href);
-        analyses = await response.json();
+      console.log('Check response status:', checkResp.status);
+      
+      if (checkResp.ok) {
+        console.log('File exists, downloading...');
+        const downloadResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/download?path=${encodeURIComponent(analysisPath)}`, {
+          headers: { 'Authorization': `OAuth ${appConfig.yandexToken}` }
+        });
+        
+        if (downloadResp.ok) {
+          const { href } = await downloadResp.json();
+          const response = await fetch(href);
+          analyses = await response.json();
+          console.log('Loaded existing analyses:', analyses.length);
+        }
+      } else {
+        console.log('File does not exist, will create new');
       }
+    } catch (e) {
+      console.warn('Failed to load existing analyses:', e);
     }
-  } catch (e) {
-    console.warn('Failed to load existing analyses:', e);
-  }
-  
-  // Add new analysis
-  analyses.push(analysis);
-  
-  // Save back to Yandex.Disk
-  const uploadResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/upload?path=${encodeURIComponent(analysisPath)}&overwrite=true`, {
-    headers: { 'Authorization': `OAuth ${appConfig.yandexToken}` }
-  });
-  
-  if (uploadResp.ok) {
-    const { href } = await uploadResp.json();
-    await fetch(href, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(analyses, null, 2)
+    
+    // Add new analysis
+    analyses.push(analysis);
+    console.log('Added new analysis, total:', analyses.length);
+    
+    // Save back to Yandex.Disk
+    console.log('Uploading analysis file...');
+    const uploadResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/upload?path=${encodeURIComponent(analysisPath)}&overwrite=true`, {
+      headers: { 'Authorization': `OAuth ${appConfig.yandexToken}` }
     });
+    
+    console.log('Upload response status:', uploadResp.status);
+    
+    if (uploadResp.ok) {
+      const { href } = await uploadResp.json();
+      console.log('Upload URL received, uploading data...');
+      
+      const putResp = await fetch(href, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(analyses, null, 2)
+      });
+      
+      console.log('PUT response status:', putResp.status);
+      
+      if (putResp.ok) {
+        console.log('Analysis saved to Yandex.Disk successfully');
+      } else {
+        throw new Error(`PUT failed: ${putResp.status}`);
+      }
+    } else {
+      throw new Error(`Upload failed: ${uploadResp.status}`);
+    }
+    
+  } catch (error) {
+    console.error('saveAnalysisToYandex error:', error);
+    throw new Error(`Ошибка сохранения анализа: ${error.message}`);
   }
 }
 
