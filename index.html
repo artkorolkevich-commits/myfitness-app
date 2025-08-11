@@ -1192,12 +1192,16 @@
           }).join('');
         }
 
+        // Date range picker variables
+        let selectedDateFrom = null;
+        let selectedDateTo = null;
+        let currentDate = new Date();
+        let isSelectingFrom = true;
+
         function applyFilters() {
           const cycle = document.getElementById('filterCycle')?.value;
           const week = document.getElementById('filterWeek')?.value;
           const session = document.getElementById('filterSession')?.value;
-          const dateFrom = document.getElementById('filterDateFrom')?.value;
-          const dateTo = document.getElementById('filterDateTo')?.value;
 
           let filtered = [...allWorkouts];
 
@@ -1212,17 +1216,17 @@
           }
           
           // Date range filter
-          if (dateFrom || dateTo) {
+          if (selectedDateFrom || selectedDateTo) {
             filtered = filtered.filter(w => {
               const workoutDate = new Date(w.date);
               const workoutDateStr = workoutDate.toISOString().split('T')[0];
               
-              if (dateFrom && dateTo) {
-                return workoutDateStr >= dateFrom && workoutDateStr <= dateTo;
-              } else if (dateFrom) {
-                return workoutDateStr >= dateFrom;
-              } else if (dateTo) {
-                return workoutDateStr <= dateTo;
+              if (selectedDateFrom && selectedDateTo) {
+                return workoutDateStr >= selectedDateFrom && workoutDateStr <= selectedDateTo;
+              } else if (selectedDateFrom) {
+                return workoutDateStr >= selectedDateFrom;
+              } else if (selectedDateTo) {
+                return workoutDateStr <= selectedDateTo;
               }
               return true;
             });
@@ -1237,18 +1241,143 @@
           const filterCycle = document.getElementById('filterCycle');
           const filterWeek = document.getElementById('filterWeek');
           const filterSession = document.getElementById('filterSession');
-          const filterDateFrom = document.getElementById('filterDateFrom');
-          const filterDateTo = document.getElementById('filterDateTo');
           
           if (filterCycle) filterCycle.value = '';
           if (filterWeek) filterWeek.value = '';
           if (filterSession) filterSession.value = '';
-          if (filterDateFrom) filterDateFrom.value = '';
-          if (filterDateTo) filterDateTo.value = '';
+          
+          // Clear date range
+          selectedDateFrom = null;
+          selectedDateTo = null;
+          updateDateRangeDisplay();
+          hideDatePicker();
           
           currentWorkouts = [...allWorkouts];
           updateStats(currentWorkouts);
           renderWorkouts(currentWorkouts);
+        }
+
+        // Date range picker functions
+        function showDatePicker() {
+          const picker = document.getElementById('dateRangePicker');
+          if (picker) {
+            picker.style.display = 'block';
+            renderCalendar();
+          }
+        }
+
+        function hideDatePicker() {
+          const picker = document.getElementById('dateRangePicker');
+          if (picker) {
+            picker.style.display = 'none';
+          }
+        }
+
+        function updateDateRangeDisplay() {
+          const input = document.getElementById('filterDateRange');
+          if (!input) return;
+          
+          if (selectedDateFrom && selectedDateTo) {
+            const fromDate = new Date(selectedDateFrom).toLocaleDateString('ru-RU');
+            const toDate = new Date(selectedDateTo).toLocaleDateString('ru-RU');
+            input.value = `${fromDate} - ${toDate}`;
+          } else if (selectedDateFrom) {
+            const fromDate = new Date(selectedDateFrom).toLocaleDateString('ru-RU');
+            input.value = `С ${fromDate}`;
+          } else if (selectedDateTo) {
+            const toDate = new Date(selectedDateTo).toLocaleDateString('ru-RU');
+            input.value = `До ${toDate}`;
+          } else {
+            input.value = '';
+          }
+        }
+
+        function renderCalendar() {
+          const grid = document.getElementById('calendarGrid');
+          const monthSpan = document.getElementById('currentMonth');
+          if (!grid || !monthSpan) return;
+
+          const year = currentDate.getFullYear();
+          const month = currentDate.getMonth();
+          
+          monthSpan.textContent = new Date(year, month).toLocaleDateString('ru-RU', {
+            month: 'long',
+            year: 'numeric'
+          });
+
+          const firstDay = new Date(year, month, 1);
+          const lastDay = new Date(year, month + 1, 0);
+          const startDate = new Date(firstDay);
+          startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+          let html = '';
+          
+          // Day headers
+          const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+          days.forEach(day => {
+            html += `<div class="calendar-day" style="font-weight: 600; color: var(--muted);">${day}</div>`;
+          });
+
+          // Calendar days
+          for (let i = 0; i < 42; i++) {
+            const date = new Date(startDate);
+            date.setDate(startDate.getDate() + i);
+            
+            const isCurrentMonth = date.getMonth() === month;
+            const dateStr = date.toISOString().split('T')[0];
+            const isSelected = dateStr === selectedDateFrom || dateStr === selectedDateTo;
+            const isInRange = selectedDateFrom && selectedDateTo && 
+                             dateStr >= selectedDateFrom && dateStr <= selectedDateTo;
+            
+            let classes = 'calendar-day';
+            if (!isCurrentMonth) classes += ' other-month';
+            if (isSelected) classes += ' selected';
+            if (isInRange && !isSelected) classes += ' in-range';
+            
+            html += `<div class="${classes}" data-date="${dateStr}">${date.getDate()}</div>`;
+          }
+
+          grid.innerHTML = html;
+          
+          // Add click handlers
+          grid.querySelectorAll('.calendar-day:not(.other-month)').forEach(day => {
+            day.addEventListener('click', handleDateClick);
+          });
+        }
+
+        function handleDateClick(event) {
+          const dateStr = event.target.dataset.date;
+          if (!dateStr) return;
+
+          if (isSelectingFrom) {
+            selectedDateFrom = dateStr;
+            selectedDateTo = null;
+            isSelectingFrom = false;
+          } else {
+            if (dateStr < selectedDateFrom) {
+              selectedDateTo = selectedDateFrom;
+              selectedDateFrom = dateStr;
+            } else {
+              selectedDateTo = dateStr;
+            }
+            isSelectingFrom = true;
+          }
+
+          updateDateRangeDisplay();
+          renderCalendar();
+        }
+
+        function applyDateRange() {
+          hideDatePicker();
+          applyFilters();
+        }
+
+        function clearDateRange() {
+          selectedDateFrom = null;
+          selectedDateTo = null;
+          isSelectingFrom = true;
+          updateDateRangeDisplay();
+          renderCalendar();
         }
 
         // Event listeners
@@ -1257,6 +1386,50 @@
         
         if (applyFiltersBtn) applyFiltersBtn.addEventListener('click', applyFilters);
         if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearFilters);
+
+        // Date picker event listeners
+        const dateRangeInput = document.getElementById('filterDateRange');
+        const prevMonthBtn = document.getElementById('prevMonth');
+        const nextMonthBtn = document.getElementById('nextMonth');
+        const applyDateRangeBtn = document.getElementById('applyDateRange');
+        const clearDateRangeBtn = document.getElementById('clearDateRange');
+
+        if (dateRangeInput) {
+          dateRangeInput.addEventListener('click', showDatePicker);
+          dateRangeInput.addEventListener('focus', showDatePicker);
+        }
+
+        if (prevMonthBtn) {
+          prevMonthBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+          });
+        }
+
+        if (nextMonthBtn) {
+          nextMonthBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+          });
+        }
+
+        if (applyDateRangeBtn) {
+          applyDateRangeBtn.addEventListener('click', applyDateRange);
+        }
+
+        if (clearDateRangeBtn) {
+          clearDateRangeBtn.addEventListener('click', clearDateRange);
+        }
+
+        // Close picker when clicking outside
+        document.addEventListener('click', (event) => {
+          const picker = document.getElementById('dateRangePicker');
+          const input = document.getElementById('filterDateRange');
+          
+          if (picker && !picker.contains(event.target) && !input.contains(event.target)) {
+            hideDatePicker();
+          }
+        });
 
         // Initialize
         updateStats(currentWorkouts);

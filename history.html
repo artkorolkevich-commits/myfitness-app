@@ -129,6 +129,103 @@
         box-shadow: 0 0 0 2px rgba(34,197,94,0.2);
       }
       
+      /* Date Range Picker */
+      .filter-group {
+        position: relative;
+      }
+      
+      .date-picker-popup {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #0b1220;
+        border: 1px solid rgba(148,163,184,0.25);
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 4px;
+        z-index: 1000;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      }
+      
+      .date-picker-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      
+      .date-picker-header button {
+        background: none;
+        border: none;
+        color: var(--accent);
+        font-size: 16px;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 4px;
+      }
+      
+      .date-picker-header button:hover {
+        background: rgba(34,197,94,0.1);
+      }
+      
+      #currentMonth {
+        font-weight: 600;
+        color: var(--text);
+      }
+      
+      .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+        margin-bottom: 16px;
+      }
+      
+      .calendar-day {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s ease;
+      }
+      
+      .calendar-day:hover {
+        background: rgba(34,197,94,0.1);
+      }
+      
+      .calendar-day.selected {
+        background: var(--accent);
+        color: white;
+      }
+      
+      .calendar-day.in-range {
+        background: rgba(34,197,94,0.2);
+        color: var(--accent);
+      }
+      
+      .calendar-day.other-month {
+        color: var(--muted);
+        cursor: default;
+      }
+      
+      .calendar-day.other-month:hover {
+        background: none;
+      }
+      
+      .date-picker-footer {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+      
+      .date-picker-footer button {
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+      
       .filter-actions {
         display: flex;
         gap: 12px;
@@ -356,12 +453,20 @@
             </select>
           </div>
           <div class="filter-group">
-            <label for="filterDateFrom">Дата с</label>
-            <input id="filterDateFrom" type="date" />
-          </div>
-          <div class="filter-group">
-            <label for="filterDateTo">Дата по</label>
-            <input id="filterDateTo" type="date" />
+            <label for="filterDateRange">Период</label>
+            <input id="filterDateRange" type="text" placeholder="Выберите период" readonly />
+            <div id="dateRangePicker" class="date-picker-popup" style="display: none;">
+              <div class="date-picker-header">
+                <button type="button" id="prevMonth">&lt;</button>
+                <span id="currentMonth">Январь 2025</span>
+                <button type="button" id="nextMonth">&gt;</button>
+              </div>
+              <div id="calendarGrid" class="calendar-grid"></div>
+              <div class="date-picker-footer">
+                <button type="button" id="applyDateRange" class="btn-primary">Применить</button>
+                <button type="button" id="clearDateRange" class="btn-secondary">Очистить</button>
+              </div>
+            </div>
           </div>
           <div class="filter-actions">
             <button class="btn" id="applyFilters">Применить</button>
