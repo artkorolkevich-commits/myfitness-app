@@ -2314,6 +2314,41 @@
           }
         }
         
+        // Test AI connection (internal, for dynamically loaded settings)
+        async function testAiConnectionInternal() {
+          try {
+            const apiKeyElement = document.getElementById('huggingFaceApiKey');
+            const modelElement = document.getElementById('aiModel');
+            if (!apiKeyElement || !modelElement) {
+              showStatus('Элементы AI настроек не найдены', 'error');
+              return;
+            }
+            const apiKey = apiKeyElement.value;
+            const model = modelElement.value || 'microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224';
+            if (!apiKey) {
+              showStatus('Введите API ключ для тестирования', 'error');
+              return;
+            }
+            showStatus('Тестируем подключение к AI...', 'info');
+            const resp = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ inputs: 'test connection' })
+            });
+            if (resp.ok) {
+              showStatus('Подключение к AI успешно!', 'success');
+            } else {
+              showStatus(`Ошибка подключения: ${resp.status}`, 'error');
+            }
+          } catch (err) {
+            console.warn('AI connection test failed:', err);
+            showStatus('Ошибка подключения к AI сервису', 'error');
+          }
+        }
+        
         // Event listeners
         console.log('Setting up settings page event listeners...');
         const loginBtn = document.getElementById('loginBtn');
@@ -2322,6 +2357,9 @@
         const exportDataBtn = document.getElementById('exportData');
         const importDataBtn = document.getElementById('importData');
         const clearDataBtn = document.getElementById('clearData');
+        // AI settings buttons (may or may not exist depending on template)
+        const saveAiSettingsBtn = document.getElementById('saveAiSettings');
+        const testAiConnectionBtn = document.getElementById('testAiConnection');
         
         console.log('loginBtn:', loginBtn);
         if (loginBtn) {
@@ -2339,10 +2377,20 @@
         if (exportDataBtn) exportDataBtn.addEventListener('click', exportData);
         if (importDataBtn) importDataBtn.addEventListener('click', importData);
         if (clearDataBtn) clearDataBtn.addEventListener('click', clearData);
+        if (saveAiSettingsBtn) {
+          // Reuse generic saveConfig which reads AI fields as well
+          saveAiSettingsBtn.addEventListener('click', () => {
+            saveConfig();
+            showStatus('AI настройки сохранены', 'success');
+          });
+        }
+        if (testAiConnectionBtn) {
+          testAiConnectionBtn.addEventListener('click', testAiConnectionInternal);
+        }
         
         // Auto-save on input changes
         [
-          'yandexPath', 'autoSync', 'syncInterval', 'defaultCycle', 'theme'
+          'yandexPath', 'autoSync', 'syncInterval', 'defaultCycle', 'theme', 'huggingFaceApiKey', 'aiModel'
         ].forEach(id => {
           const element = document.getElementById(id);
           if (element) {
