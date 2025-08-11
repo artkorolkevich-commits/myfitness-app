@@ -654,10 +654,6 @@
       <div class="main-content">
         <!-- Welcome Page Content -->
         <div id="welcome-page" class="page-content">
-          <div class="content-header">
-            <h2>Главная</h2>
-            <p>Добро пожаловать в MyFitness</p>
-          </div>
           
           <div class="content-body">
             <div class="welcome-card">
@@ -733,10 +729,6 @@
         
         <!-- Main Page Content -->
         <div id="main-page" class="page-content" style="display: none;">
-          <div class="content-header">
-            <h2>Новая тренировка</h2>
-            <p>Заполните данные о вашей тренировке</p>
-          </div>
           
           <div class="content-body">
             <div class="workout-form">
@@ -858,10 +850,6 @@
         
         <!-- History Page Content -->
         <div id="history-page" class="page-content" style="display: none;">
-          <div class="content-header">
-            <h2>История тренировок</h2>
-            <p>Просмотр и анализ ваших тренировок</p>
-          </div>
           
           <div class="content-body">
             <div id="history-content">
@@ -872,10 +860,6 @@
         
         <!-- Settings Page Content -->
         <div id="settings-page" class="page-content" style="display: none;">
-          <div class="content-header">
-            <h2>Настройки</h2>
-            <p>Настройка приложения и синхронизации</p>
-          </div>
           
           <div class="content-body">
             <div id="settings-content">
@@ -913,9 +897,7 @@
   else if (pageName === 'history') loadHistoryPage();
   else if (pageName === 'settings') loadSettingsPage();
 
-  const pageTitles = { welcome: 'Главная', main: 'Новая тренировка', history: 'История тренировок', settings: 'Настройки' };
-  const scopedHeader = targetPage ? targetPage.querySelector('.content-header h2') : null;
-  if (scopedHeader && pageTitles[pageName]) scopedHeader.textContent = pageTitles[pageName];
+
 }      
       async function loadWelcomePage() {
         // Load statistics from localStorage
