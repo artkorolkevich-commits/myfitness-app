@@ -2342,37 +2342,40 @@
             }
             showStatus('Тестируем подключение к AI...', 'info');
             
-            // Test with a simple text input instead of image
-            let requestBody;
-            
-            // Different models expect different input formats
-            if (model.includes('BiomedCLIP')) {
-              // BiomedCLIP can work with text-only input for testing
-              requestBody = {
-                inputs: "body fat percentage estimation"
-              };
-            } else if (model.includes('detr') || model.includes('resnet')) {
-              // These models need image input, so we'll test with a simple text query
-              requestBody = {
-                inputs: "test"
-              };
-            } else {
-              // Default fallback
-              requestBody = {
-                inputs: "body fat percentage estimation"
-              };
+            // First, test if the API key is valid by checking user info
+            try {
+              const userResp = await fetch('https://huggingface.co/api/whoami', {
+                headers: {
+                  'Authorization': `Bearer ${apiKey}`
+                }
+              });
+              
+              console.log('User info response status:', userResp.status);
+              
+              if (userResp.ok) {
+                const userInfo = await userResp.json();
+                console.log('User info:', userInfo);
+                showStatus(`Подключение к AI успешно! Пользователь: ${userInfo.name || 'Unknown'}`, 'success');
+                return;
+              } else {
+                console.log('User info failed, trying model test...');
+              }
+            } catch (userErr) {
+              console.log('User info test failed, trying model test...', userErr);
             }
             
-            console.log('Testing with model:', model);
-            console.log('Test request body:', requestBody);
+            // Fallback: test with a simple model
+            const testModel = 'microsoft/DialoGPT-medium';
             
-            const resp = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+            const resp = await fetch(`https://api-inference.huggingface.co/models/${testModel}`, {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json'
               },
-              body: JSON.stringify(requestBody)
+              body: JSON.stringify({
+                inputs: "Hello, this is a test message."
+              })
             });
             
             console.log('AI test response status:', resp.status);
