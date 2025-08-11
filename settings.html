@@ -373,6 +373,38 @@
         </div>
       </div>
       
+      <!-- AI Analysis Settings -->
+      <div class="settings-section">
+        <h3>
+          <span class="section-icon">🤖</span>
+          Настройки AI анализа
+        </h3>
+        
+        <div class="form-group">
+          <label for="huggingFaceApiKey">API ключ Hugging Face</label>
+          <input 
+            id="huggingFaceApiKey" 
+            type="password" 
+            placeholder="hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+          />
+          <div class="help-text">
+            Получите бесплатный API ключ на <a href="https://huggingface.co/settings/tokens" target="_blank">huggingface.co</a> для реального анализа фотографий
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="aiModel">Модель AI</label>
+          <select id="aiModel">
+            <option value="microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224" selected>BiomedCLIP (медицинский анализ)</option>
+            <option value="facebook/detr-resnet-50">DETR (детекция объектов)</option>
+            <option value="microsoft/resnet-50">ResNet-50 (общий анализ)</option>
+          </select>
+          <div class="help-text">
+            Выберите модель для анализа фотографий тела
+          </div>
+        </div>
+      </div>
+      
       <!-- Data Management -->
       <div class="settings-section">
         <h3>
@@ -416,7 +448,9 @@
           autoSync: true,
           syncInterval: 15,
           defaultCycle: 1,
-          theme: 'dark'
+          theme: 'dark',
+          huggingFaceApiKey: '',
+          aiModel: 'microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224'
         };
       
       function loadConfig() {
@@ -464,6 +498,8 @@
           config.syncInterval = parseInt(document.getElementById('syncInterval').value);
           config.defaultCycle = parseInt(document.getElementById('defaultCycle').value);
           config.theme = document.getElementById('theme').value;
+          config.huggingFaceApiKey = document.getElementById('huggingFaceApiKey').value;
+          config.aiModel = document.getElementById('aiModel').value;
           
           localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
           showStatus('Настройки сохранены', 'success');
@@ -479,6 +515,8 @@
         document.getElementById('syncInterval').value = config.syncInterval;
         document.getElementById('defaultCycle').value = config.defaultCycle;
         document.getElementById('theme').value = config.theme;
+        document.getElementById('huggingFaceApiKey').value = config.huggingFaceApiKey || '';
+        document.getElementById('aiModel').value = config.aiModel || 'microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224';
       }
       
       function showStatus(message, type = 'info') {
