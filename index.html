@@ -975,7 +975,7 @@
         `;
         
         try {
-          const response = await fetch(`./history.html?v=${Date.now()}&cache=${Math.random()}`);
+          const response = await fetch(`./history.html?v=${Date.now()}&cache=${Math.random()}&force=${Date.now()}`);
           const html = await response.text();
           
           // Extract body content
@@ -1025,6 +1025,61 @@
               .workout-exercises strong {
                 color: var(--accent);
                 font-weight: 600;
+              }
+              
+              /* Calendar grid fix */
+              .calendar-grid {
+                display: grid !important;
+                grid-template-columns: repeat(7, 1fr) !important;
+                gap: 4px !important;
+                margin-bottom: 16px !important;
+                width: 100% !important;
+              }
+              
+              .calendar-day {
+                aspect-ratio: 1 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                border-radius: 4px !important;
+                cursor: pointer !important;
+                font-size: 14px !important;
+                transition: all 0.2s ease !important;
+                min-height: 32px !important;
+              }
+              
+              .calendar-day:hover {
+                background: rgba(34,197,94,0.1) !important;
+              }
+              
+              .calendar-day.selected {
+                background: var(--accent) !important;
+                color: white !important;
+              }
+              
+              .calendar-day.in-range {
+                background: rgba(34,197,94,0.2) !important;
+                color: var(--accent) !important;
+              }
+              
+              .calendar-day.other-month {
+                color: var(--muted) !important;
+                cursor: default !important;
+              }
+              
+              .calendar-day.other-month:hover {
+                background: none !important;
+              }
+              
+              .calendar-day.header-day {
+                cursor: default !important;
+                pointer-events: none !important;
+                font-weight: 600 !important;
+                color: var(--muted) !important;
+              }
+              
+              .calendar-day.header-day:hover {
+                background: none !important;
               }
             `;
             document.head.appendChild(style);
