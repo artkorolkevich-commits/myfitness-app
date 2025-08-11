@@ -1784,16 +1784,46 @@ function collectCurrentEntry() {
           const merged = mergeWorkouts(remoteWorkouts, localWorkouts);
           setWorkouts(merged);
 
-          const uploadLinkResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/upload?path=${encodeURIComponent(path)}&overwrite=true`, {
+          // Try to upload with overwrite first
+          let uploadLinkResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/upload?path=${encodeURIComponent(path)}&overwrite=true`, {
             headers: { 'Authorization': `OAuth ${token}` }
           });
+          
+          // If 409 conflict, try without overwrite (create new file)
+          if (uploadLinkResp.status === 409) {
+            console.log('File conflict detected, trying to create new file...');
+            uploadLinkResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/upload?path=${encodeURIComponent(path)}`, {
+              headers: { 'Authorization': `OAuth ${token}` }
+            });
+            
+            // If still conflict, try with timestamp
+            if (uploadLinkResp.status === 409) {
+              console.log('Still conflict, trying with timestamp...');
+              const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+              const backupPath = path.replace('.json', `-${timestamp}.json`);
+              uploadLinkResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/upload?path=${encodeURIComponent(backupPath)}`, {
+                headers: { 'Authorization': `OAuth ${token}` }
+              });
+              
+              if (uploadLinkResp.ok) {
+                console.log('Created backup file with timestamp');
+                showStatus('Создан резервный файл с временной меткой', 'info');
+              }
+            }
+          }
+          
           if (!uploadLinkResp.ok) {
             const msg = `Ошибка получения upload URL: ${uploadLinkResp.status}`;
+            console.error('Upload error details:', uploadLinkResp.statusText);
             showStatus(msg, 'error');
             return false;
           }
+          
           const { href } = await uploadLinkResp.json();
-          if (!href) { showStatus('Не получена ссылка загрузки', 'error'); return false; }
+          if (!href) { 
+            showStatus('Не получена ссылка загрузки', 'error'); 
+            return false; 
+          }
 
           showStatus('Синхронизация с Яндекс.Диском...', 'info');
           const putResp = await fetch(href, {
@@ -1801,7 +1831,9 @@ function collectCurrentEntry() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(merged, null, 2)
           });
+          
           if (!putResp.ok) {
+            console.error('PUT request failed:', putResp.status, putResp.statusText);
             showStatus(`Ошибка записи: ${putResp.status}`, 'error');
             return false;
           }
