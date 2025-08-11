@@ -732,8 +732,10 @@
           
           const replicateKey = replicateElement.value;
           
-          console.log('Testing Replicate connection with:', {
-            replicateKey: replicateKey ? '***' + replicateKey.slice(-4) : 'empty'
+          console.log('Testing Replicate API key format:', {
+            replicateKey: replicateKey ? '***' + replicateKey.slice(-4) : 'empty',
+            length: replicateKey.length,
+            startsWithR8: replicateKey.startsWith('r8_')
           });
           
           if (!replicateKey) {
@@ -741,35 +743,22 @@
             return;
           }
           
-          showStatus('Тестируем подключение к Replicate...', 'info');
-        
-          try {
-            // Use a CORS proxy to bypass CORS restrictions
-            const proxyUrl = 'https://api.allorigins.win/raw?url=';
-            const targetUrl = 'https://api.replicate.com/v1/models';
-            
-            // Test Replicate API with a simple request
-            const response = await fetch(proxyUrl + targetUrl, {
-              method: 'GET',
-              headers: {
-                'Authorization': `Token ${replicateKey}`,
-                'Content-Type': 'application/json',
-                'Origin': window.location.origin
-              }
-            });
-            
-            if (response.ok) {
-              showStatus('Подключение к Replicate успешно!', 'success');
-            } else {
-              showStatus(`Ошибка подключения к Replicate: ${response.status}`, 'error');
-            }
-          } catch (error) {
-            console.error('Replicate connection test failed:', error);
-            showStatus('Ошибка подключения к Replicate сервису', 'error');
+          // Validate Replicate API key format
+          if (!replicateKey.startsWith('r8_')) {
+            showStatus('Неверный формат API ключа Replicate. Ключ должен начинаться с "r8_"', 'error');
+            return;
           }
+          
+          if (replicateKey.length < 40) {
+            showStatus('API ключ Replicate слишком короткий. Проверьте правильность ключа.', 'error');
+            return;
+          }
+          
+          showStatus('Формат API ключа Replicate корректен! (CORS ограничения не позволяют протестировать API в браузере)', 'success');
+          
         } catch (e) {
           console.error('Replicate test setup failed:', e);
-          showStatus('Ошибка настройки теста Replicate: ' + e.message, 'error');
+          showStatus('Ошибка проверки API ключа: ' + e.message, 'error');
         }
       }
       

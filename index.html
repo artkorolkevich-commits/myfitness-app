@@ -2561,33 +2561,28 @@
             return;
           }
           
-          console.log('Testing Replicate connection with:', {
-            replicateKey: replicateKey ? '***' + replicateKey.slice(-4) : 'empty'
+          console.log('Testing Replicate API key format:', {
+            replicateKey: replicateKey ? '***' + replicateKey.slice(-4) : 'empty',
+            length: replicateKey.length,
+            startsWithR8: replicateKey.startsWith('r8_')
           });
           
-          alert('🔄 Тестируем подключение к Replicate через прокси...');
-        
-          // Use a CORS proxy to bypass CORS restrictions
-          const proxyUrl = 'https://api.allorigins.win/raw?url=';
-          const targetUrl = 'https://api.replicate.com/v1/models';
-          
-          const response = await fetch(proxyUrl + targetUrl, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Token ${replicateKey}`,
-              'Content-Type': 'application/json',
-              'Origin': window.location.origin
-            }
-          });
-          
-          if (response.ok) {
-            alert('✅ Подключение к Replicate успешно!');
-          } else {
-            alert(`❌ Ошибка подключения к Replicate: ${response.status}`);
+          // Validate Replicate API key format
+          if (!replicateKey.startsWith('r8_')) {
+            alert('❌ Неверный формат API ключа Replicate. Ключ должен начинаться с "r8_"');
+            return;
           }
+          
+          if (replicateKey.length < 40) {
+            alert('❌ API ключ Replicate слишком короткий. Проверьте правильность ключа.');
+            return;
+          }
+          
+          alert('✅ Формат API ключа Replicate корректен!\n\n⚠️ Примечание: Из-за CORS ограничений реальное тестирование API недоступно в браузере.\n\nДля полного тестирования:\n1. Используйте Hugging Face API\n2. Или запустите приложение локально\n3. Или протестируйте анализ тела напрямую');
+          
         } catch (error) {
           console.error('Replicate connection test failed:', error);
-          alert(`❌ Ошибка подключения к Replicate сервису: ${error.message}`);
+          alert(`❌ Ошибка проверки API ключа: ${error.message}`);
         }
       }
 
@@ -4259,49 +4254,54 @@ function createFatProgressChart(chartData) {
   console.log('Fat progress chart created successfully');
 }
 
-async function analyzeWithReplicate(photo, apiKey) {
-  console.log('Starting Replicate analysis...');
-  
-  try {
-    // Convert image to base64
-    const base64Image = photo.dataUrl.split(',')[1];
-    
-    // Use a CORS proxy to bypass CORS restrictions
-    const proxyUrl = 'https://api.allorigins.win/raw?url=';
-    const targetUrl = REPLICATE_API_URL;
-    
-    // Use a body composition analysis model
-    const response = await fetch(proxyUrl + targetUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Token ${apiKey}`,
-        'Content-Type': 'application/json',
-        'Origin': window.location.origin
-      },
-      body: JSON.stringify({
-        version: "c221b2b8ef527988fb59bf24a8b97c2f3c2e9d4b3a6e2c0b8b8b8b8b8b8b8b8b8",
-        input: {
-          image: `data:image/jpeg;base64,${base64Image}`,
-          prompt: "Analyze body fat percentage and provide detailed body composition assessment"
+      async function analyzeWithReplicate(photo, apiKey) {
+        console.log('Starting Replicate analysis...');
+        
+        try {
+          // Check if we're in a browser environment with CORS restrictions
+          if (window.location.hostname === 'artkorolkevich-commits.github.io') {
+            throw new Error('CORS ограничения не позволяют использовать Replicate API в браузере. Попробуйте Hugging Face API или запустите приложение локально.');
+          }
+          
+          // Convert image to base64
+          const base64Image = photo.dataUrl.split(',')[1];
+          
+          // Use a CORS proxy to bypass CORS restrictions
+          const proxyUrl = 'https://api.allorigins.win/raw?url=';
+          const targetUrl = REPLICATE_API_URL;
+          
+          // Use a body composition analysis model
+          const response = await fetch(proxyUrl + targetUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Token ${apiKey}`,
+              'Content-Type': 'application/json',
+              'Origin': window.location.origin
+            },
+            body: JSON.stringify({
+              version: "c221b2b8ef527988fb59bf24a8b97c2f3c2e9d4b3a6e2c0b8b8b8b8b8b8b8b8b8",
+              input: {
+                image: `data:image/jpeg;base64,${base64Image}`,
+                prompt: "Analyze body fat percentage and provide detailed body composition assessment"
+              }
+            })
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Replicate API error: ${response.status}`);
+          }
+          
+          const result = await response.json();
+          console.log('Replicate result:', result);
+          
+          // Process the result and return analysis
+          return processReplicateResult(result);
+          
+        } catch (error) {
+          console.error('Replicate analysis failed:', error);
+          throw error;
         }
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Replicate API error: ${response.status}`);
-    }
-    
-    const result = await response.json();
-    console.log('Replicate result:', result);
-    
-    // Process the result and return analysis
-    return processReplicateResult(result);
-    
-  } catch (error) {
-    console.error('Replicate analysis failed:', error);
-    throw error;
-  }
-}
+      }
 
 function processReplicateResult(result) {
   // Extract fat percentage from Replicate response
