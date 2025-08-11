@@ -3178,7 +3178,7 @@ function handlePhotoSelect(e) {
 
 function handlePhotoFile(file) {
   if (!file.type.startsWith('image/')) {
-    showStatus('Пожалуйста, выберите изображение', 'error');
+    showAnalysisStatus('Пожалуйста, выберите изображение', 'error');
     return;
   }
 
@@ -3225,7 +3225,7 @@ async function analyzeBody() {
     document.getElementById('saveBtn').disabled = false;
     
   } catch (error) {
-    showStatus('Ошибка анализа: ' + error.message, 'error');
+    showAnalysisStatus('Ошибка анализа: ' + error.message, 'error');
   } finally {
     analyzeBtn.disabled = false;
     analyzeBtn.textContent = '🔍 Анализировать фото';
@@ -3270,22 +3270,79 @@ function showAnalysisResults(analysis) {
   document.getElementById('analysisResults').style.display = 'block';
 }
 
+function showAnalysisStatus(message, type = 'info') {
+  console.log('showAnalysisStatus:', message, type);
+  
+  // Create status element if it doesn't exist
+  let statusEl = document.querySelector('.body-analysis-form .status');
+  if (!statusEl) {
+    statusEl = document.createElement('div');
+    statusEl.className = 'status';
+    const form = document.querySelector('.body-analysis-form');
+    if (form) {
+      form.insertBefore(statusEl, form.querySelector('.analysis-history'));
+    }
+  }
+  
+  if (statusEl) {
+    statusEl.className = `status ${type}`;
+    statusEl.textContent = message;
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+      if (statusEl && statusEl.parentNode) {
+        statusEl.remove();
+      }
+    }, 5000);
+  } else {
+    console.error('Could not create status element');
+    alert(message); // Fallback
+  }
+}
+
 async function saveAnalysis() {
-  if (!currentAnalysis || !currentPhoto) return;
+  console.log('saveAnalysis called');
+  console.log('currentAnalysis:', currentAnalysis);
+  console.log('currentPhoto:', currentPhoto);
+  
+  if (!currentAnalysis || !currentPhoto) {
+    console.log('Missing currentAnalysis or currentPhoto');
+    showAnalysisStatus('Нет данных для сохранения', 'error');
+    return;
+  }
 
   try {
+    console.log('Starting save process...');
+    
+    // Check if user is authorized
+    if (!appConfig.yandexToken) {
+      console.log('No Yandex token, saving only to localStorage');
+      saveAnalysisToLocal(currentAnalysis);
+      showAnalysisStatus('Анализ сохранен локально (требуется авторизация в Яндекс.Диске)', 'info');
+      loadAnalysisHistory();
+      return;
+    }
+    
     // Save to Yandex.Disk
+    console.log('Saving photo to Yandex.Disk...');
     await savePhotoToYandex(currentPhoto);
+    console.log('Photo saved successfully');
+    
+    console.log('Saving analysis to Yandex.Disk...');
     await saveAnalysisToYandex(currentAnalysis);
+    console.log('Analysis saved successfully');
     
     // Save to localStorage
+    console.log('Saving to localStorage...');
     saveAnalysisToLocal(currentAnalysis);
+    console.log('localStorage saved successfully');
     
-    showStatus('Анализ сохранен!', 'success');
+    showAnalysisStatus('Анализ сохранен!', 'success');
     loadAnalysisHistory();
     
   } catch (error) {
-    showStatus('Ошибка сохранения: ' + error.message, 'error');
+    console.error('Save error:', error);
+    showAnalysisStatus('Ошибка сохранения: ' + error.message, 'error');
   }
 }
 
@@ -3363,21 +3420,34 @@ async function saveAnalysisToYandex(analysis) {
 }
 
 function saveAnalysisToLocal(analysis) {
+  console.log('saveAnalysisToLocal called with:', analysis);
   const analyses = JSON.parse(localStorage.getItem('bodyAnalyses') || '[]');
+  console.log('Existing analyses:', analyses);
   analyses.push(analysis);
+  console.log('Updated analyses:', analyses);
   localStorage.setItem('bodyAnalyses', JSON.stringify(analyses));
+  console.log('Saved to localStorage successfully');
 }
 
 function loadAnalysisHistory() {
+  console.log('loadAnalysisHistory called');
   const analyses = JSON.parse(localStorage.getItem('bodyAnalyses') || '[]');
+  console.log('Loaded analyses from localStorage:', analyses);
   const historyContainer = document.getElementById('analysisHistory');
   
+  if (!historyContainer) {
+    console.error('analysisHistory container not found');
+    return;
+  }
+  
   if (analyses.length === 0) {
+    console.log('No analyses found, showing empty message');
     historyContainer.innerHTML = '<p style="text-align: center; color: var(--muted);">История измерений пуста</p>';
     return;
   }
   
   const recentAnalyses = analyses.slice(-5).reverse(); // Last 5, newest first
+  console.log('Recent analyses to display:', recentAnalyses);
   
   historyContainer.innerHTML = recentAnalyses.map(analysis => {
     const date = new Date(analysis.timestamp);
@@ -3396,6 +3466,8 @@ function loadAnalysisHistory() {
       </div>
     `;
   }).join('');
+  
+  console.log('History updated successfully');
 }
       
       // Test data functions
