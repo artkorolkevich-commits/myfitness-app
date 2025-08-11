@@ -1315,7 +1315,7 @@
           // Day headers
           const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
           days.forEach(day => {
-            html += `<div class="calendar-day" style="font-weight: 600; color: var(--muted);">${day}</div>`;
+            html += `<div class="calendar-day header-day" style="font-weight: 600; color: var(--muted); cursor: default;">${day}</div>`;
           });
 
           // Calendar days
@@ -1340,7 +1340,7 @@
           grid.innerHTML = html;
           
           // Add click handlers
-          grid.querySelectorAll('.calendar-day:not(.other-month)').forEach(day => {
+          grid.querySelectorAll('.calendar-day:not(.other-month):not(.header-day)').forEach(day => {
             day.addEventListener('click', handleDateClick);
           });
         }

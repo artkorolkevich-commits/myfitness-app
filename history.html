@@ -179,6 +179,7 @@
         grid-template-columns: repeat(7, 1fr);
         gap: 4px;
         margin-bottom: 16px;
+        width: 100%;
       }
       
       .calendar-day {
@@ -213,6 +214,15 @@
       
       .calendar-day.other-month:hover {
         background: none;
+      }
+      
+      .calendar-day.header-day {
+        cursor: default !important;
+        pointer-events: none;
+      }
+      
+      .calendar-day.header-day:hover {
+        background: none !important;
       }
       
       .date-picker-footer {
