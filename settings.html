@@ -496,7 +496,10 @@
       }
       
       function loginWithYandex() {
+        console.log('loginWithYandex called');
         const oauthUrl = `https://oauth.yandex.ru/authorize?response_type=token&client_id=07ca787a8f60406eab80bce2c2cf80c4&redirect_uri=${encodeURIComponent(window.location.origin + window.location.pathname)}`;
+        console.log('OAuth URL:', oauthUrl);
+        console.log('Redirecting to:', oauthUrl);
         window.location.href = oauthUrl;
       }
 
@@ -566,7 +569,12 @@
       }
       
       // Event listeners
-      document.getElementById('loginBtn').addEventListener('click', loginWithYandex);
+      console.log('Setting up settings page event listeners...');
+      const loginBtn = document.getElementById('loginBtn');
+      console.log('loginBtn:', loginBtn);
+      loginBtn.addEventListener('click', loginWithYandex);
+      console.log('Login button event listener added');
+      
       document.getElementById('logoutBtn').addEventListener('click', logoutFromYandex);
       document.getElementById('syncNow').addEventListener('click', syncNow);
       document.getElementById('exportData').addEventListener('click', exportData);
