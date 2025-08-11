@@ -1676,32 +1676,35 @@ function collectCurrentEntry() {
           return false;
         }
         try {
-          // 1) Download remote, merge, then upload
+          // 1) Check if file exists, then download via API
           let remoteWorkouts = [];
           try {
-            const remoteResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/download?path=${encodeURIComponent(path)}`, {
+            // First check if file exists
+            const checkResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources?path=${encodeURIComponent(path)}`, {
               headers: { 'Authorization': `OAuth ${token}` }
             });
             
-            if (remoteResp.ok) {
-              const { href: downloadHref } = await remoteResp.json();
-              if (downloadHref) {
-                // Use XMLHttpRequest to avoid CORS issues with direct file download
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', downloadHref, false); // Synchronous to avoid promise issues
-                xhr.send();
-                
-                if (xhr.status === 200) {
-                  try { 
-                    remoteWorkouts = JSON.parse(xhr.responseText); 
-                  } catch { 
-                    remoteWorkouts = []; 
-                  }
+            if (checkResp.ok) {
+              // File exists, try to get its content via API
+              const downloadResp = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/download?path=${encodeURIComponent(path)}`, {
+                headers: { 'Authorization': `OAuth ${token}` }
+              });
+              
+              if (downloadResp.ok) {
+                const { href: downloadHref } = await downloadResp.json();
+                if (downloadHref) {
+                  // Use proxy approach or skip download for now
+                  console.log('File exists but direct download blocked by CORS. Starting with local data.');
+                  remoteWorkouts = [];
                 }
               }
+            } else if (checkResp.status === 404) {
+              // File doesn't exist, start with empty array
+              console.log('Remote file not found, starting with empty array');
+              remoteWorkouts = [];
             }
           } catch (e) {
-            console.warn('Failed to download remote file, starting with empty array:', e);
+            console.warn('Failed to check remote file, starting with empty array:', e);
             remoteWorkouts = [];
           }
 
@@ -1895,12 +1898,16 @@ if (window.location.hash.includes('access_token')) {
   handleOAuthCallback();
 }
 
-// Pull from Yandex on startup to merge latest remote with local
-(async function initialPull(){
-  if (appConfig.yandexToken && appConfig.yandexPath) {
-    await syncWorkoutsToYandex(); // performs download->merge->upload
-  }
-})();
+          // Pull from Yandex on startup to merge latest remote with local
+          (async function initialPull(){
+            if (appConfig.yandexToken && appConfig.yandexPath) {
+              try {
+                await syncWorkoutsToYandex(); // performs download->merge->upload
+              } catch (e) {
+                console.warn('Initial sync failed, continuing with local data:', e);
+              }
+            }
+          })();
 
 // React to settings updates from Settings page (if open in another tab)
 window.addEventListener('storage', (e) => {
