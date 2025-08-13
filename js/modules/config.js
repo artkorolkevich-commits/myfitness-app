@@ -16,7 +16,8 @@ export const API_CONFIG = {
   YANDEX_OAUTH_URL: 'https://oauth.yandex.ru/authorize',
   YANDEX_DISK_API: 'https://cloud-api.yandex.net/v1/disk',
   HUGGING_FACE_BASE_URL: 'https://api-inference.huggingface.co/models/',
-  CLIENT_ID: '07ca787a8f60406eab80bce2c2cf80c4'
+  CLIENT_ID: '07ca787a8f60406eab80bce2c2cf80c4',
+  AI_MODEL: 'microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224'
 };
 
 // Настройки по умолчанию
