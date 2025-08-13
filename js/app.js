@@ -11,6 +11,8 @@ import { exerciseManager } from './modules/exercises.js';
 import { yandexAPI } from './modules/yandex-api.js';
 import { aiService } from './modules/ai-service.js';
 import { uiManager } from './components/ui-manager.js';
+import { historyManager } from './modules/history-manager.js';
+import { settingsManager } from './modules/settings-manager.js';
 
 class MyFitnessApp {
   constructor() {
@@ -60,6 +62,10 @@ class MyFitnessApp {
     if (this.config.huggingFaceApiKey) {
       aiService.init(this.config.huggingFaceApiKey);
     }
+
+    // Инициализируем менеджеры
+    historyManager.init();
+    settingsManager.init();
 
     logger.info('Services initialized');
   }
