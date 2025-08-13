@@ -13,6 +13,8 @@ import { aiService } from './modules/ai-service.js';
 import { uiManager } from './components/ui-manager.js';
 import { historyManager } from './modules/history-manager.js';
 import { settingsManager } from './modules/settings-manager.js';
+import { bodyAnalysisManager } from './modules/body-analysis-manager.js';
+import { progressManager } from './modules/progress-manager.js';
 
 class MyFitnessApp {
   constructor() {
@@ -66,6 +68,8 @@ class MyFitnessApp {
     // Инициализируем менеджеры
     historyManager.init();
     settingsManager.init();
+    bodyAnalysisManager.init();
+    progressManager.init();
 
     logger.info('Services initialized');
   }
