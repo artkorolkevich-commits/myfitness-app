@@ -1,8 +1,19 @@
 /**
  * Конфигурация приложения MyFitness
+ * Централизованное хранение всех настроек и конфигураций
+ * 
+ * @module config
+ * @version 1.0.0
+ * @author MyFitness App Team
+ * @description Основной конфигурационный файл приложения, содержащий все настройки,
+ * API ключи, константы и параметры по умолчанию
  */
 
-// Ключи для localStorage
+/**
+ * Ключи для localStorage
+ * @type {Object.<string, string>}
+ * @description Ключи для хранения данных в localStorage браузера
+ */
 export const STORAGE_KEYS = {
   CONFIG: 'myfitness_config',
   WORKOUTS: 'workouts',
@@ -11,7 +22,11 @@ export const STORAGE_KEYS = {
   DEVICE_ID: 'device_id'
 };
 
-// API конфигурация
+/**
+ * API конфигурация
+ * @type {Object.<string, string>}
+ * @description Настройки для внешних API (Yandex.Disk, Hugging Face)
+ */
 export const API_CONFIG = {
   YANDEX_OAUTH_URL: 'https://oauth.yandex.ru/authorize',
   YANDEX_DISK_API: 'https://cloud-api.yandex.net/v1/disk',
@@ -20,7 +35,11 @@ export const API_CONFIG = {
   AI_MODEL: 'microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224'
 };
 
-// Настройки по умолчанию
+/**
+ * Настройки по умолчанию
+ * @type {Object}
+ * @description Конфигурация приложения по умолчанию
+ */
 export const DEFAULT_CONFIG = {
   yandexToken: '',
   yandexPath: '/MyFitness/workouts.json',
