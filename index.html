@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MyFitness - Дневник тренировок</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <style>
       :root {
         --bg: #0f172a;
@@ -491,8 +492,127 @@
         gap: 6px;
       }
 
-      /* Body Analysis Styles */
-      .body-analysis-form {
+              /* Progress Page Styles */
+        .progress-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        
+        .exercise-selection-section {
+          background: var(--card-bg);
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 24px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .chart-type-buttons {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+          margin-top: 8px;
+        }
+        
+        .chart-type-btn {
+          padding: 8px 16px;
+          border: 2px solid var(--border);
+          background: transparent;
+          color: var(--text);
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 14px;
+          transition: all 0.2s;
+        }
+        
+        .chart-type-btn:hover {
+          border-color: var(--accent);
+          background: var(--accent);
+          color: white;
+        }
+        
+        .chart-type-btn.active {
+          border-color: var(--accent);
+          background: var(--accent);
+          color: white;
+        }
+        
+        .chart-container {
+          background: var(--card-bg);
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 24px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          min-height: 400px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .progress-stats {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 16px;
+          margin-bottom: 24px;
+        }
+        
+        .stat-card {
+          background: var(--card-bg);
+          border-radius: 12px;
+          padding: 20px;
+          text-align: center;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .stat-title {
+          font-size: 14px;
+          color: var(--muted);
+          margin-bottom: 8px;
+        }
+        
+        .stat-value {
+          font-size: 24px;
+          font-weight: bold;
+          color: var(--accent);
+        }
+        
+        .data-table-section {
+          background: var(--card-bg);
+          border-radius: 12px;
+          padding: 20px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .table-container {
+          overflow-x: auto;
+          margin-top: 16px;
+        }
+        
+        #progressTable {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 14px;
+        }
+        
+        #progressTable th,
+        #progressTable td {
+          padding: 12px;
+          text-align: left;
+          border-bottom: 1px solid var(--border);
+        }
+        
+        #progressTable th {
+          background: var(--bg);
+          font-weight: 600;
+          color: var(--muted);
+        }
+        
+        #progressTable tbody tr:hover {
+          background: var(--bg);
+        }
+        
+        /* Body Analysis Styles */
+        .body-analysis-form {
         max-width: 600px;
         margin: 0 auto;
         padding: 20px;
@@ -1066,6 +1186,10 @@
             <div class="nav-icon">📸</div>
             <div class="nav-text">Анализ тела</div>
           </div>
+          <div class="nav-item" data-page="progress">
+            <div class="nav-icon">📈</div>
+            <div class="nav-text">Прогресс</div>
+          </div>
           <div class="nav-item" data-page="settings">
             <div class="nav-icon">⚙️</div>
             <div class="nav-text">Настройки</div>
@@ -1338,6 +1462,102 @@
           </div>
         </div>
         
+        <!-- Progress Page Content -->
+        <div id="progress-page" class="page-content" style="display: none;">
+          <div class="content-body">
+            <div class="progress-container">
+              <h3>📊 Прогресс упражнений</h3>
+              
+              <!-- Exercise Selection -->
+              <div class="exercise-selection-section">
+                <div class="form-group">
+                  <label for="exerciseSelect">🎯 Выберите упражнение:</label>
+                  <select id="exerciseSelect" class="form-control">
+                    <option value="">-- Выберите упражнение --</option>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label for="periodSelect">⏰ Период:</label>
+                  <select id="periodSelect" class="form-control">
+                    <option value="2w">Последние 2 недели</option>
+                    <option value="1m" selected>Последний месяц</option>
+                    <option value="3m">Последние 3 месяца</option>
+                    <option value="6m">Последние 6 месяцев</option>
+                    <option value="1y">Последний год</option>
+                    <option value="custom">Произвольный период</option>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label>📊 Тип графика:</label>
+                  <div class="chart-type-buttons">
+                    <button class="chart-type-btn active" data-type="volume">
+                      Общий объем (вес × повторы)
+                    </button>
+                    <button class="chart-type-btn" data-type="max-weight">
+                      Максимальный вес
+                    </button>
+                    <button class="chart-type-btn" data-type="range">
+                      Диапазон весов (мин-макс)
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Chart Container -->
+              <div class="chart-container">
+                <canvas id="progressChart"></canvas>
+              </div>
+              
+              <!-- Statistics -->
+              <div class="progress-stats">
+                <div class="stat-card">
+                  <div class="stat-title">Начальный вес</div>
+                  <div class="stat-value" id="startWeight">-</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-title">Текущий максимум</div>
+                  <div class="stat-value" id="currentMax">-</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-title">Рост за период</div>
+                  <div class="stat-value" id="growth">-</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-title">Средний объем</div>
+                  <div class="stat-value" id="avgVolume">-</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-title">Тренировок</div>
+                  <div class="stat-value" id="workoutCount">-</div>
+                </div>
+              </div>
+              
+              <!-- Data Table -->
+              <div class="data-table-section">
+                <h4>📋 Данные тренировок</h4>
+                <div class="table-container">
+                  <table id="progressTable">
+                    <thead>
+                      <tr>
+                        <th>Дата</th>
+                        <th>Вес (кг)</th>
+                        <th>Повторения</th>
+                        <th>Объем (кг)</th>
+                        <th>Макс. вес</th>
+                      </tr>
+                    </thead>
+                    <tbody id="progressTableBody">
+                      <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <!-- Settings Page Content -->
         <div id="settings-page" class="page-content" style="display: none;">
           
@@ -1563,7 +1783,8 @@
   if (pageName === 'welcome') loadWelcomePage();
   else if (pageName === 'main') loadMainPage();
   else if (pageName === 'history') loadHistoryPage();
-  else if (pageName === 'body-analysis') loadBodyAnalysisPage();
+        else if (pageName === 'body-analysis') loadBodyAnalysisPage();
+      else if (pageName === 'progress') loadProgressPage();
   else if (pageName === 'settings') loadSettingsPage();
 
 
@@ -4204,6 +4425,301 @@ function createFatProgressChart(chartData) {
       
 
 
+      
+      // Progress tracking functions
+      let progressChart = null;
+      let currentExerciseData = [];
+      
+      function loadProgressPage() {
+        console.log('Loading progress page...');
+        populateExerciseSelect();
+        setupProgressEventListeners();
+        updateProgressDisplay();
+      }
+      
+      function populateExerciseSelect() {
+        const exerciseSelect = document.getElementById('exerciseSelect');
+        const workouts = JSON.parse(localStorage.getItem('workouts') || '[]');
+        
+        // Get unique exercises from all workouts
+        const exercises = new Set();
+        workouts.forEach(workout => {
+          if (workout.exercises) {
+            workout.exercises.forEach(exercise => {
+              if (exercise.exercise) {
+                exercises.add(exercise.exercise);
+              }
+            });
+          }
+        });
+        
+        // Clear existing options except the first one
+        exerciseSelect.innerHTML = '<option value="">-- Выберите упражнение --</option>';
+        
+        // Add exercise options
+        Array.from(exercises).sort().forEach(exercise => {
+          const option = document.createElement('option');
+          option.value = exercise;
+          option.textContent = exercise;
+          exerciseSelect.appendChild(option);
+        });
+      }
+      
+      function setupProgressEventListeners() {
+        const exerciseSelect = document.getElementById('exerciseSelect');
+        const periodSelect = document.getElementById('periodSelect');
+        const chartTypeButtons = document.querySelectorAll('.chart-type-btn');
+        
+        exerciseSelect.addEventListener('change', updateProgressDisplay);
+        periodSelect.addEventListener('change', updateProgressDisplay);
+        
+        chartTypeButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            chartTypeButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updateProgressDisplay();
+          });
+        });
+      }
+      
+      function updateProgressDisplay() {
+        const selectedExercise = document.getElementById('exerciseSelect').value;
+        const selectedPeriod = document.getElementById('periodSelect').value;
+        const selectedChartType = document.querySelector('.chart-type-btn.active').dataset.type;
+        
+        if (!selectedExercise) {
+          clearProgressDisplay();
+          return;
+        }
+        
+        const exerciseData = getExerciseData(selectedExercise, selectedPeriod);
+        currentExerciseData = exerciseData;
+        
+        if (exerciseData.length === 0) {
+          showNoDataMessage();
+          return;
+        }
+        
+        updateProgressChart(exerciseData, selectedChartType);
+        updateProgressStats(exerciseData);
+        updateProgressTable(exerciseData);
+      }
+      
+      function getExerciseData(exerciseName, period) {
+        const workouts = JSON.parse(localStorage.getItem('workouts') || '[]');
+        const now = new Date();
+        let startDate;
+        
+        // Calculate start date based on period
+        switch (period) {
+          case '2w':
+            startDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+            break;
+          case '1m':
+            startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            break;
+          case '3m':
+            startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+            break;
+          case '6m':
+            startDate = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
+            break;
+          case '1y':
+            startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+            break;
+          default:
+            startDate = new Date(0); // All time
+        }
+        
+        const exerciseData = [];
+        
+        workouts.forEach(workout => {
+          const workoutDate = new Date(workout.date);
+          if (workoutDate >= startDate && workout.exercises) {
+            workout.exercises.forEach(exercise => {
+              if (exercise.exercise === exerciseName && exercise.sets) {
+                const workoutData = {
+                  date: workout.date,
+                  workoutDate: workoutDate,
+                  sets: exercise.sets,
+                  maxWeight: Math.max(...exercise.sets.map(set => set.weight || 0)),
+                  minWeight: Math.min(...exercise.sets.map(set => set.weight || 0)),
+                  totalVolume: exercise.sets.reduce((sum, set) => sum + (set.weight || 0) * (set.reps || 0), 0),
+                  totalWeight: exercise.sets.reduce((sum, set) => sum + (set.weight || 0), 0),
+                  totalReps: exercise.sets.reduce((sum, set) => sum + (set.reps || 0), 0)
+                };
+                exerciseData.push(workoutData);
+              }
+            });
+          }
+        });
+        
+        // Sort by date
+        return exerciseData.sort((a, b) => a.workoutDate - b.workoutDate);
+      }
+      
+      function updateProgressChart(data, chartType) {
+        const ctx = document.getElementById('progressChart');
+        
+        if (progressChart) {
+          progressChart.destroy();
+        }
+        
+        const chartData = prepareChartData(data, chartType);
+        
+        progressChart = new Chart(ctx, {
+          type: 'line',
+          data: chartData,
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              title: {
+                display: true,
+                text: `${document.getElementById('exerciseSelect').value} - ${getChartTypeTitle(chartType)}`,
+                color: getComputedStyle(document.documentElement).getPropertyValue('--text')
+              },
+              legend: {
+                labels: {
+                  color: getComputedStyle(document.documentElement).getPropertyValue('--text')
+                }
+              }
+            },
+            scales: {
+              x: {
+                type: 'time',
+                time: {
+                  unit: 'day',
+                  displayFormats: {
+                    day: 'DD.MM'
+                  }
+                },
+                ticks: {
+                  color: getComputedStyle(document.documentElement).getPropertyValue('--text')
+                }
+              },
+              y: {
+                ticks: {
+                  color: getComputedStyle(document.documentElement).getPropertyValue('--text')
+                }
+              }
+            }
+          }
+        });
+      }
+      
+      function prepareChartData(data, chartType) {
+        const labels = data.map(item => new Date(item.date));
+        
+        switch (chartType) {
+          case 'volume':
+            return {
+              labels: labels,
+              datasets: [{
+                label: 'Общий объем (кг)',
+                data: data.map(item => item.totalVolume),
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4
+              }]
+            };
+          case 'max-weight':
+            return {
+              labels: labels,
+              datasets: [{
+                label: 'Максимальный вес (кг)',
+                data: data.map(item => item.maxWeight),
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.4
+              }]
+            };
+          case 'range':
+            return {
+              labels: labels,
+              datasets: [
+                {
+                  label: 'Максимальный вес (кг)',
+                  data: data.map(item => item.maxWeight),
+                  borderColor: '#10b981',
+                  backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                  tension: 0.4
+                },
+                {
+                  label: 'Минимальный вес (кг)',
+                  data: data.map(item => item.minWeight),
+                  borderColor: '#ef4444',
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                  tension: 0.1
+                }
+              ]
+            };
+          default:
+            return { labels: [], datasets: [] };
+        }
+      }
+      
+      function getChartTypeTitle(chartType) {
+        switch (chartType) {
+          case 'volume': return 'Общий объем';
+          case 'max-weight': return 'Максимальный вес';
+          case 'range': return 'Диапазон весов';
+          default: return '';
+        }
+      }
+      
+      function updateProgressStats(data) {
+        if (data.length === 0) return;
+        
+        const startWeight = data[0].maxWeight;
+        const currentMax = data[data.length - 1].maxWeight;
+        const growth = currentMax - startWeight;
+        const growthPercent = startWeight > 0 ? (growth / startWeight * 100).toFixed(1) : 0;
+        const avgVolume = (data.reduce((sum, item) => sum + item.totalVolume, 0) / data.length).toFixed(0);
+        
+        document.getElementById('startWeight').textContent = `${startWeight} кг`;
+        document.getElementById('currentMax').textContent = `${currentMax} кг`;
+        document.getElementById('growth').textContent = `${growth > 0 ? '+' : ''}${growth} кг (${growthPercent}%)`;
+        document.getElementById('avgVolume').textContent = `${avgVolume} кг`;
+        document.getElementById('workoutCount').textContent = data.length;
+      }
+      
+      function updateProgressTable(data) {
+        const tbody = document.getElementById('progressTableBody');
+        tbody.innerHTML = '';
+        
+        data.forEach(item => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${new Date(item.date).toLocaleDateString('ru-RU')}</td>
+            <td>${item.totalWeight} кг</td>
+            <td>${item.totalReps}</td>
+            <td>${item.totalVolume} кг</td>
+            <td>${item.maxWeight} кг</td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
+      
+      function clearProgressDisplay() {
+        if (progressChart) {
+          progressChart.destroy();
+          progressChart = null;
+        }
+        
+        document.getElementById('startWeight').textContent = '-';
+        document.getElementById('currentMax').textContent = '-';
+        document.getElementById('growth').textContent = '-';
+        document.getElementById('avgVolume').textContent = '-';
+        document.getElementById('workoutCount').textContent = '-';
+        
+        document.getElementById('progressTableBody').innerHTML = '';
+      }
+      
+      function showNoDataMessage() {
+        const chartContainer = document.querySelector('.chart-container');
+        chartContainer.innerHTML = '<div style="text-align: center; color: var(--muted);">📊 Нет данных для выбранного упражнения и периода</div>';
+      }
       
       // Test data functions
       function loadTestData() {
