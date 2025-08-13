@@ -217,7 +217,8 @@
       }
       
       .wf-row select,
-      .wf-row input[type="number"] {
+      .wf-row input[type="number"],
+      .wf-row input[type="datetime-local"] {
         background: #0b1220;
         color: var(--text);
         border: 1px solid rgba(148,163,184,0.25);
@@ -1296,6 +1297,10 @@
               <h3>Дневник тренировок (FullBody, 3 раза/нед.)</h3>
               
               <div class="wf-controls">
+                <div class="ctrl">
+                  <label for="workoutDate">Дата тренировки:</label>
+                  <input id="workoutDate" type="datetime-local" />
+                </div>
                 <div class="ctrl">
                   <label for="cycle">Цикл:</label>
                   <input id="cycle" type="number" min="1" step="1" placeholder="1" />
@@ -2965,6 +2970,16 @@ function collectCurrentEntry() {
   const cycle = Number(document.getElementById('cycle').value) || 1;
   const week = Number(document.getElementById('week').value);
   const session = Number(document.getElementById('session').value);
+  
+  // Получаем дату из поля ввода или используем текущую дату
+  const workoutDateInput = document.getElementById('workoutDate');
+  let workoutDate;
+  
+  if (workoutDateInput && workoutDateInput.value) {
+    workoutDate = new Date(workoutDateInput.value).toISOString();
+  } else {
+    workoutDate = new Date().toISOString();
+  }
 
   const exercises = selectedExercises.map(exercise => {
     const setsContainer = document.getElementById(`sets-${exercise.id}`);
@@ -2994,7 +3009,7 @@ function collectCurrentEntry() {
 
   return {
     id: generateUUID(),
-    date: new Date().toISOString(),
+    date: workoutDate,
     updatedAt: new Date().toISOString(),
     deviceId: getDeviceId(),
     cycle, week, session,
@@ -3347,6 +3362,20 @@ function collectCurrentEntry() {
           
           // Clear form
           cycleEl.value = '';
+          
+          // Reset workout date to current date
+          const workoutDateInput = document.getElementById('workoutDate');
+          if (workoutDateInput) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            
+            workoutDateInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+          }
+          
           selectedExercises = [];
           renderExerciseGrid();
           renderSelectedExercises();
@@ -3403,6 +3432,19 @@ function collectCurrentEntry() {
 // Initialize
 loadConfig();
 startAutoSyncTimer();
+
+// Initialize workout date field with current date
+const workoutDateInput = document.getElementById('workoutDate');
+if (workoutDateInput) {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  
+  workoutDateInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+}
 
 // Handle OAuth callback on page load
 if (window.location.hash.includes('access_token')) {
